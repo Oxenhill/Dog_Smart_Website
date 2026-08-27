@@ -61,3 +61,25 @@ exists yet for this site — needs a `SANITY_AUTH_TOKEN` (from
 sanity.io/manage, same org as Briarrose) before `sanity init` can run
 non-interactively here. Content model, full page set, course area, and
 the chatbot are all still to build.
+
+## Operational notes (27 Aug 2026)
+
+- **Pushing**: local git has no credential helper configured in the
+  bridged dev environment, so `git push` fails there. The GitKraken
+  plugin's `git_push` (targeting the real `C:\dev\...` path, not the
+  bridged mount path) works and is authenticated — use that to push.
+  The GitHub Copilot MCP connection is read-only (`push_files` fails
+  with 403) — don't rely on it for writes.
+- **Vercel**: project `dog-smart-website` exists, linked to this repo,
+  auto-deploys on push to `main`. First deploy succeeded.
+- **Sanity**: Oliver's `sanity login` session isn't visible from this
+  bridged environment (checked `~/.config/sanity`, `~/.sanity` —
+  nothing there; the bridge's `$HOME` isn't Oliver's real one). CLI
+  commands here just hang until timeout. Creating the project needs
+  either a Sanity management API token (sanity.io/manage → this org →
+  API → Add API token) so it can be done via the HTTP API directly, or
+  Oliver running `npx sanity init` himself in his own terminal.
+- **Pricing**: Oliver's call, not mine — he leans toward showing it
+  (most other dog trainers hide theirs, he'd rather not). Build the
+  pricing fields as CMS-editable with a visibility toggle, defaulted
+  to visible, rather than hardcoding a decision either way.
