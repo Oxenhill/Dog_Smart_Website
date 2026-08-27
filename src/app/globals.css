@@ -619,6 +619,22 @@
     flex-wrap: wrap;
     gap: 14px;
   }
+  @media (max-width: 760px) {
+    /* The real hero photo is a wide landscape shot (3:2) of the whole
+       family — Oliver, Becs and 5 dogs spread across its full width.
+       At the old min(88vh,760px) box height, a narrow phone viewport
+       forced an extremely tall/narrow crop that showed maybe a third
+       of the photo's width — mostly trees, with the family cropped
+       out entirely. Shortening the box on mobile keeps far more of
+       the photo's width in frame; the position shift keeps Oliver in
+       shot too (50% centred on Becs alone). */
+    .hero {
+      min-height: min(58vh, 500px);
+    }
+    .hero-media img {
+      object-position: 40% 28%;
+    }
+  }
 
   /* =====================================================================
      Lede — the empathetic "meet you where you are" opener, in Oliver's
