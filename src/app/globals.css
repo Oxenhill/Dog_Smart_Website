@@ -221,11 +221,16 @@
     position: sticky;
     top: 0;
     z-index: 250;
-    background: color-mix(in oklab, var(--paper) 90%, transparent);
-    backdrop-filter: blur(14px);
-    -webkit-backdrop-filter: blur(14px);
+    background: var(--paper);
     border-bottom: 1px solid var(--line);
     padding-block: 14px;
+  }
+  @supports (backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px)) {
+    header.site-nav {
+      background: color-mix(in oklab, var(--paper) 90%, transparent);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+    }
   }
   .nav-row {
     display: grid;
