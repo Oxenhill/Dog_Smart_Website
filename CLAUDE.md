@@ -65,11 +65,63 @@ singletons, `service` (with a CMS pricing-visibility toggle), `course`
 live at `/studio` once deployed. Env vars are set in both `.env.local`
 (gitignored) and Vercel (Production/Preview/Development).
 
-Still to build: the actual page templates that query this content
-(currently only the placeholder homepage exists), the online-learning
-UI, the AI chatbot, and populating real content into the Studio
-(everything above is schema, not data yet — Oliver or Claude still
-needs to fill it in via /studio).
+Homepage is designed and built (see "Homepage design pass" below).
+Still to build: the other page templates (About, Services, FAQ,
+Contact, Blog, Online Learning), the AI chatbot, and populating real
+content into the Studio (schema exists but is mostly empty — Oliver or
+Claude still needs to fill it in via /studio).
+
+## Homepage design pass (27 Aug 2026)
+
+Phase 1 scope: homepage only, redesigned to move it from an 8-year-old
+Wix look to something that reads as 2026 while keeping the existing
+"Dog Smart family" warmth. Applied the `modern-web-guidance` skill's
+css-layout, accessibility, navigation-drawer and forms guides rather
+than building ad hoc.
+
+- **Colour**: kept the real logo orange as the core brand colour but
+  replaced flat `--brand` usage on text/buttons with an accessible
+  tiered scale (`--brand-600/700/800`) — the original single orange
+  only hit ~2.9:1 contrast, failing WCAG AA. Every text/background
+  pairing on the page was checked against AA (4.5:1 body, 3:1
+  large/UI) before being finalised.
+- **Mobile navigation**: the placeholder's mobile nav was fully
+  broken (links just `display:none` below 900px with no replacement).
+  Replaced with `src/components/site/MobileNav.tsx`, a proper
+  navigation drawer: Popover API (`popover="manual"`) promoted to the
+  top layer, a horizontal scroll-snap track driving open/close via
+  native browser gestures, `IntersectionObserver` as the single
+  source of truth for open/closed state, `inert` on `<main>` while
+  open, and a scroll-driven backdrop fade gated behind
+  `@supports (animation-timeline: scroll())` with a plain CSS/JS
+  fallback for browsers without it.
+- **Content**: homepage copy comes from `content-audit/README.md` and
+  the `siteSettings` schema's own `initialValue`s — no lorem ipsum, no
+  invented testimonials. Sections: hero with trust badges, force-free
+  promise band, services grid (4 real services), founding story
+  (Oliver + Becs, 2018), "Meet the Family" (all 7 real dogs, monogram
+  avatars since no photos exist yet), a testimonials-or-trust-stats
+  band (real Sanity testimonials if any are `featured && approved`,
+  otherwise honest stats — never fabricated quotes), and a booking CTA
+  band. All booking CTAs read from `siteSettings.classBookingUrl` /
+  `behaviourBookingUrl` and fall back to `#book` until those are
+  populated.
+- **New files**: `src/sanity/lib/types.ts` and `queries.ts` (GROQ for
+  siteSettings/services/dogs/testimonials, feeding the existing
+  `sanityFetch` fallback helper), `src/components/site/MobileNav.tsx`.
+  `src/app/(site)/layout.tsx`, `src/app/(site)/page.tsx` and
+  `src/app/globals.css` were substantially rewritten, not patched.
+- **Known-fixed bug**: the sticky header originally used a
+  90%-opacity background relying on `backdrop-filter: blur()` to stay
+  legible. When blur doesn't render, page content shows through
+  sharply behind the header text — caught by loading the live deploy
+  and visually scrolling it. Fixed by defaulting the header to a fully
+  opaque background and only applying the translucent + blurred
+  version inside `@supports (backdrop-filter: blur(1px))`.
+- **Scope discipline**: About/Services/FAQ/Contact/Blog pages were
+  deliberately *not* built in this pass, even though the nav links to
+  them — Oliver asked for the homepage design language to be reviewed
+  and approved before anything else gets built on top of it.
 
 ## Operational notes (27 Aug 2026)
 
@@ -93,3 +145,9 @@ needs to fill it in via /studio).
   (most other dog trainers hide theirs, he'd rather not). Build the
   pricing fields as CMS-editable with a visibility toggle, defaulted
   to visible, rather than hardcoding a decision either way.
+- **Large file transfer to the device**: for files too big to pass
+  through the device shell reliably in one go (e.g. `globals.css`),
+  `SendUserFile` on the cloud-side copy followed by
+  `device_commit_files` (with the real `C:\dev\...` Windows path as
+  `devicePath`) is far more reliable than base64-chunking through
+  `device_bash` heredocs — use it first for anything over a few KB.
