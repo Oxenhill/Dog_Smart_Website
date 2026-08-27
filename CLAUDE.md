@@ -25,9 +25,14 @@ Full plan, phases, and cost rationale live in Notion:
 - Tagline (from the current site): "Real-life training, honest
   behaviour support, and a community built on understanding dogs — not
   just managing them."
-- Fonts: Fredoka (display, rounded — matches the logo's rounded dog
-  mark) + Inter (UI/body). First-pass choice, not yet confirmed with
-  Oliver — check before treating as final.
+- Fonts: Fraunces (display, warm serif) + Inter (UI/body). Swapped
+  from an earlier Fredoka choice after Oliver's feedback that the v1
+  homepage looked "tacky" and "generic AI" — Fredoka's bubbly rounded
+  shapes read as a SaaS-template default rather than professional. If
+  changing the display font again, note Fraunces is a variable font:
+  `weight` must stay `"variable"` in `next/font/google` (a fixed-weight
+  array breaks the `axes` option with a Turbopack module-not-found
+  error).
 
 ## Site structure (from current Wix nav — confirm before treating as final)
 
@@ -65,11 +70,18 @@ singletons, `service` (with a CMS pricing-visibility toggle), `course`
 live at `/studio` once deployed. Env vars are set in both `.env.local`
 (gitignored) and Vercel (Production/Preview/Development).
 
-Homepage is designed and built (see "Homepage design pass" below).
-Still to build: the other page templates (About, Services, FAQ,
-Contact, Blog, Online Learning), the AI chatbot, and populating real
-content into the Studio (schema exists but is mostly empty — Oliver or
-Claude still needs to fill it in via /studio).
+Homepage is designed and built (see "Homepage design pass" and
+"Homepage design pass v2" below). Sanity now holds real, non-fabricated
+seed content — not an empty schema: 9 `dog` documents (6 current +
+Briar/Sam as legacy + a minimal Lenny stub), the `familyProfile` and
+`siteSettings` singletons, and 4 `service` documents, all with real
+photos pulled from the live Wix site and uploaded as Sanity image
+assets. Everything is still editable by Oliver via `/studio` — the
+seed just means the homepage now shows real content instead of
+fallback copy. Still to build: the other page templates (About,
+Services, FAQ, Contact, Blog, Online Learning), the AI chatbot, and
+the Facebook/Google review-sync + AI placement engine (see "Reviews"
+below — deliberately deferred).
 
 ## Homepage design pass (27 Aug 2026)
 
@@ -122,6 +134,65 @@ than building ad hoc.
   deliberately *not* built in this pass, even though the nav links to
   them — Oliver asked for the homepage design language to be reviewed
   and approved before anything else gets built on top of it.
+
+## Homepage design pass v2 (27 Aug 2026)
+
+Oliver's review of the v1 pass: "tacky", "not enough class", "generic
+AI", "doesn't have the personal touches my original site has". Root
+cause, found by comparing the built page against the real live Wix
+site: v1 was a recognisable AI-SaaS-landing-page template (badge-row
+hero, icon-card grid, gradient blob, monogram avatars, bubbly Fredoka
+font, testimonials genericised into a stats band) instead of an
+adaptation of Dog Smart's real structure, voice and photography. Full
+rewrite, not a patch:
+
+- **Real photography, not icons/monograms**: every dog, founder and
+  service section now uses a real photo pulled from the live Wix site
+  (resized via Wix's own CDN convention —
+  `/v1/fit/w_<W>,h_<H>,q_85/file.jpg` — to keep files small) and
+  re-uploaded as a Sanity image asset. New `.photo-frame` CSS utility
+  (`src/app/globals.css`) applies the translucent brand-colour
+  gradient + `mix-blend-mode: multiply` overlay that's the visual
+  signature of Oliver's own site, and unifies photos of varying
+  quality into one cohesive look. All images are swappable by Oliver
+  in the CMS — nothing is hardcoded.
+- **Contextual testimonials**: `testimonial.relatedService` (new
+  reference field, `src/sanity/schemaTypes/testimonial.ts`) lets a
+  review be pinned under the specific service it's about instead of
+  only appearing in a general reviews band. Oliver doesn't do this on
+  the current site but wants it. No real testimonial data exists yet
+  (never fabricate) — the UI slot is built and will show real reviews
+  once Oliver adds them in the Studio.
+- **Reviews pipeline — designed for it, build later**: Oliver's real
+  reviews come from Google, Facebook and word-of-mouth (which he wants
+  to phase out). `testimonial.source` already models the review's
+  origin; an eventual Facebook/Google sync + AI engine that
+  auto-classifies which service a review belongs to is explicitly
+  future work — only the data model landed in this pass.
+- **Legacy dogs**: new `dog.legacy` boolean
+  (`src/sanity/schemaTypes/dog.ts`) distinguishes current family dogs
+  from those who've passed away. Briar and Sam are seeded as legacy
+  dogs (Briar is the namesake of "Briarrose") and rendered in a
+  separate sepia-toned in-memoriam block. Lenny — real but not on the
+  current Wix site — was confirmed directly with Oliver rather than
+  guessed, and seeded as a minimal CMS stub for him to fill in.
+- **Typography**: Fredoka → Fraunces (see Brand section above for the
+  variable-font gotcha this swap ran into on deploy).
+- **Structure**: hero is now a full-bleed real photo (no badge row);
+  services are alternating photo/text rows instead of an icon-card
+  grid; a founding-story section carries Oliver and Becs's real photos,
+  bios and credentials; the accreditation strip uses the real
+  Victoria Stilwell Academy / Illis ABC / Family Dog Mediator / UK Dog
+  Training Charter logos (grayscale until hover) instead of generic
+  badges.
+- **Content seeding**: `.seed/upload-images.cjs` and
+  `.seed/seed-content.cjs` (kept in the repo for reuse — read the
+  write token from `.env.local`, never hardcode it) populated Sanity
+  directly via its HTTP asset-upload and mutate APIs (the Sanity CLI
+  isn't usable from the bridged device shell). Re-run these if content
+  ever needs re-seeding from scratch.
+- **Scope discipline unchanged**: still homepage-only. About/Services/
+  FAQ/Contact/Blog pages were not built in this pass.
 
 ## Operational notes (27 Aug 2026)
 
