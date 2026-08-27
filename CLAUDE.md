@@ -55,12 +55,21 @@ booking app rather than trying to book directly itself).
 
 ## Status
 
-Scaffolding only so far: Next.js/Sanity/Tailwind tooling parity with
-Briarrose, brand tokens, a placeholder homepage. No Sanity project
-exists yet for this site — needs a `SANITY_AUTH_TOKEN` (from
-sanity.io/manage, same org as Briarrose) before `sanity init` can run
-non-interactively here. Content model, full page set, course area, and
-the chatbot are all still to build.
+Sanity is fully wired up: project `778sos5n` (org `o8mabou8r`, same
+org as Briarrose), dataset `production`, CORS origins for
+localhost:3000/3333 and the production Vercel URL, an Editor write
+token. Content model built: `siteSettings` + `familyProfile`
+singletons, `service` (with a CMS pricing-visibility toggle), `course`
+(modules/lessons — the built-in online learning area), `dog`,
+`testimonial`, `faqItem`, `post`, `policy`, `galleryItem`. Studio is
+live at `/studio` once deployed. Env vars are set in both `.env.local`
+(gitignored) and Vercel (Production/Preview/Development).
+
+Still to build: the actual page templates that query this content
+(currently only the placeholder homepage exists), the online-learning
+UI, the AI chatbot, and populating real content into the Studio
+(everything above is schema, not data yet — Oliver or Claude still
+needs to fill it in via /studio).
 
 ## Operational notes (27 Aug 2026)
 
@@ -72,13 +81,14 @@ the chatbot are all still to build.
   with 403) — don't rely on it for writes.
 - **Vercel**: project `dog-smart-website` exists, linked to this repo,
   auto-deploys on push to `main`. First deploy succeeded.
-- **Sanity**: Oliver's `sanity login` session isn't visible from this
-  bridged environment (checked `~/.config/sanity`, `~/.sanity` —
-  nothing there; the bridge's `$HOME` isn't Oliver's real one). CLI
-  commands here just hang until timeout. Creating the project needs
-  either a Sanity management API token (sanity.io/manage → this org →
-  API → Add API token) so it can be done via the HTTP API directly, or
-  Oliver running `npx sanity init` himself in his own terminal.
+- **Sanity**: CLI auth isn't visible from this bridged environment
+  (bridge's `$HOME` isn't Oliver's real one), so the project, dataset,
+  CORS origins and API token were all created by driving
+  sanity.io/manage directly via browser automation instead — same
+  approach used for Briarrose. Project `778sos5n`, org `o8mabou8r`.
+  Schema lives in `src/sanity/schemaTypes/`, Studio route at
+  `src/app/studio/[[...tool]]`. To add more content types or edit
+  fields, edit those files then push — no CLI needed.
 - **Pricing**: Oliver's call, not mine — he leans toward showing it
   (most other dog trainers hide theirs, he'd rather not). Build the
   pricing fields as CMS-editable with a visibility toggle, defaulted
