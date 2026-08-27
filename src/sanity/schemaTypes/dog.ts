@@ -29,6 +29,13 @@ export default defineType({
       type: 'array',
       of: [{ type: 'image', options: { hotspot: true } }],
     }),
+    defineField({
+      name: 'legacy',
+      title: 'No longer with us?',
+      type: 'boolean',
+      initialValue: false,
+      description: 'Turn on for a beloved dog who has passed away — shown as a legacy/in-memoriam entry rather than a current family member.',
+    }),
     defineField({ name: 'order', title: 'Display order', type: 'number', initialValue: 0 }),
   ],
   orderings: [{ title: 'Display order', name: 'orderAsc', by: [{ field: 'order', direction: 'asc' }] }],

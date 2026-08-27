@@ -7,6 +7,14 @@ export interface SocialLink {
   url: string;
 }
 
+export interface SanityImageRef {
+  asset: {
+    url: string;
+    metadata?: { dimensions?: { width: number; height: number } } | null;
+  };
+  hotspot?: { x: number; y: number } | null;
+}
+
 export interface SiteSettings {
   businessName: string;
   familyTagline: string;
@@ -14,6 +22,7 @@ export interface SiteSettings {
   heroEyebrow?: string | null;
   heroHeadline?: string | null;
   heroSubhead?: string | null;
+  heroImage?: SanityImageRef | null;
 
   familyEyebrow?: string | null;
   familyHeadline?: string | null;
@@ -44,6 +53,7 @@ export interface Service {
   slug: string;
   summary?: string | null;
   icon?: string | null;
+  heroImage?: SanityImageRef | null;
 }
 
 export interface FamilyDog {
@@ -51,6 +61,8 @@ export interface FamilyDog {
   name: string;
   breed?: string | null;
   bio?: string | null;
+  photo?: SanityImageRef | null;
+  legacy?: boolean;
 }
 
 export interface Testimonial {
@@ -59,4 +71,25 @@ export interface Testimonial {
   clientName?: string | null;
   location?: string | null;
   dogName?: string | null;
+  source?: string | null;
+  relatedService?: { _id: string; title: string; slug: string } | null;
+}
+
+export interface PortableTextBlock {
+  _type: string;
+  style?: string;
+  children?: { text?: string }[];
+}
+
+export interface FamilyProfile {
+  introHeadline?: string | null;
+  story?: PortableTextBlock[] | null;
+  trainingPromise?: PortableTextBlock[] | null;
+  oliverName?: string | null;
+  oliverBio?: PortableTextBlock[] | null;
+  oliverCredentials?: string[] | null;
+  oliverPhoto?: SanityImageRef | null;
+  becsName?: string | null;
+  becsBio?: PortableTextBlock[] | null;
+  becsPhoto?: SanityImageRef | null;
 }

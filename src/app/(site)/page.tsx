@@ -1,338 +1,458 @@
+import Image from "next/image";
 import { sanityFetch } from "@/sanity/lib/client";
 import {
   FAMILY_DOGS_QUERY,
+  FAMILY_PROFILE_QUERY,
   FEATURED_TESTIMONIALS_QUERY,
   SERVICES_QUERY,
   SITE_SETTINGS_QUERY,
 } from "@/sanity/lib/queries";
-import type { FamilyDog, Service, SiteSettings, Testimonial } from "@/sanity/lib/types";
+import type {
+  FamilyDog,
+  FamilyProfile,
+  PortableTextBlock,
+  Service,
+  SiteSettings,
+  Testimonial,
+} from "@/sanity/lib/types";
+import { dataset, projectId } from "@/sanity/env";
 
-// Mirrors the siteSettings schema's initialValue defaults — see
-// src/app/(site)/layout.tsx for the matching note.
+// Real accreditation marks (Victoria Stilwell Academy, Illis ABC, Family Dog
+// Mediator, UK Dog Training Charter) pulled from the live Wix site and
+// uploaded into Sanity's asset store — referenced by asset id here since
+// there's no dedicated schema field for them yet. If Oliver wants to swap
+// or add to these later they can move into a proper siteSettings field;
+// for now this keeps them real rather than generic.
+const CREDENTIAL_LOGOS = [
+  { id: "0f8645b6492d5873894e85fb36b19bcb3f1ff236-300x300.jpg", alt: "Victoria Stilwell Academy" },
+  { id: "c89caa8e5c5750a814d438e1ec87de1e24c556d7-400x88.png", alt: "Illis ABC" },
+  { id: "966f64c0341275321da95b10785c7d479f12a5fb-300x300.jpg", alt: "Family Dog Mediator" },
+  { id: "42a2b21cf7a5ec16d24dbadafafb12010e5765c4-282x300.jpg", alt: "UK Dog Training Charter" },
+];
+
+function credentialUrl(assetFile: string) {
+  return `https://cdn.sanity.io/images/${projectId}/${dataset}/${assetFile}`;
+}
+
+// Mirrors the real content now seeded into Sanity (see .seed/seed-content.cjs)
+// so the page still reads correctly, with the same real facts, even if
+// Sanity is briefly unreachable. Images have no local fallback — if
+// Sanity can't be reached there's simply no photo, handled gracefully
+// below, since these photos are meant to live in and be managed from
+// the CMS, not hardcoded into the repo.
 const FALLBACK_SETTINGS: SiteSettings = {
   businessName: "Dog Smart Training & Behaviour",
   familyTagline: "We're Not Just a Training Service — We're a Family",
   heroEyebrow: "Sevenoaks, Kent",
-  heroHeadline: "Real-life training. Honest behaviour support.",
+  heroHeadline: "Every Dog is Different. So Is Every Owner.",
   heroSubhead:
-    "A community built on understanding dogs — not just managing them. Force-free training and behaviour support for you and your dog, from puppyhood onwards.",
+    "Real-life training, honest behaviour support, and a community built on understanding dogs — not just managing them.",
   familyEyebrow: "The Dog Smart Family",
   familyHeadline: "We're Not Just a Training Service — We're a Family",
   familyBody:
-    "Founded by Oliver and Becs in 2018, Dog Smart is built around force-free, understanding-led training — for every dog and every family that joins us.",
-  ctaEyebrow: "Get Started",
-  ctaHeadline: "Let's get to know your dog.",
-  ctaBody: "Book a class, a consult, or just ask us a question — we reply to every enquiry personally.",
-  phone: null,
+    "At Dog Smart, we don't just work with dogs — we walk alongside their humans too. Our clients become part of a growing community, one that values honesty, patience, and the belief that learning should feel safe.",
+  ctaEyebrow: "Not Sure Where to Start?",
+  ctaHeadline: "Book a 1-on-1 Training Session Today",
+  ctaBody: "Take your time. Read, explore, ask questions. When you're ready — we're here.",
   email: "trainers@dogsmarttrainingbehaviour.co.uk",
-  classBookingUrl: null,
+  addressLocality: "Sevenoaks",
+  addressRegion: "Kent",
+  coverageArea: "Serving Sevenoaks, Tunbridge Wells and the surrounding Kent villages",
+  classBookingUrl: "https://booking.dogsmarttrainingbehaviour.co.uk/",
   behaviourBookingUrl: null,
-  onlineLearningUrl: "/online-learning",
+  onlineLearningUrl: "https://online.dogsmarttrainingbehaviour.co.uk",
+  socialLinks: [
+    { platform: "Facebook", url: "https://www.facebook.com/dogsmarttraining" },
+    { platform: "Instagram", url: "https://www.instagram.com/dogsmart_training_behaviour" },
+  ],
+  footerText: "© Dog Smart Training & Behaviour",
+  showPricingSitewide: true,
 };
 
-// Real service copy, drawn from the live Wix site's content audit
-// (content-audit/README.md) and the current service line-up. Order
-// matches the confirmed site map. Replace via Sanity Studio → Services.
 const FALLBACK_SERVICES: Service[] = [
   {
-    _id: "fallback-puppy",
+    _id: "puppy-support",
     title: "Puppy Support",
     slug: "puppy-support",
-    summary:
-      "Force-free foundations for the first year — socialisation, confidence and the basics that set you both up for life together.",
     icon: "puppy",
+    summary:
+      "Expert 1:1 guidance through those early weeks — socialisation, sleep, settling, and building good habits from day one.",
   },
   {
-    _id: "fallback-general",
+    _id: "general-dog-training",
     title: "General Dog Training",
     slug: "general-dog-training",
-    summary: "Manners and reliable everyday behaviour, taught around Sevenoaks and the Kent villages nearby.",
-    icon: "training",
+    icon: "general",
+    summary:
+      "From real-life manners to reliable recall — calm, force-free training that builds behaviour that actually lasts.",
   },
   {
-    _id: "fallback-gundog",
+    _id: "gundog-training",
     title: "Gundog Training",
     slug: "gundog-training",
-    summary: "From first retrieves to steady fieldwork groundwork — force-free training for high-drive gundog breeds.",
     icon: "gundog",
+    summary:
+      "Specialist gundog work in Sevenoaks for working and high-drive pet breeds alike, force-free from first retrieve onward.",
   },
   {
-    _id: "fallback-behaviour",
+    _id: "behaviour-support",
     title: "Behaviour Support",
     slug: "behaviour-support",
-    summary: "One-to-one support for reactivity, fear and anxiety-based behaviour, delivered with patience — never punishment.",
     icon: "behaviour",
+    summary:
+      "Calm, professional support for dogs struggling with reactivity, regulation or fear — helping you both move forward.",
   },
 ];
 
-// Real dogs, real facts — from the content audit's /family pull. Where a
-// dog's specific story hasn't been written up yet, the line stays warm
-// but general rather than inventing detail. Replace via Studio → Family
-// Dogs once photos and full bios are ready.
+const SERVICE_INTROS: Record<string, string> = {
+  "puppy-support": "Maybe you've just brought home a puppy and want to start things right.",
+  "general-dog-training": "From real-life manners to specialist gundog skills, we'll help you build behaviour that lasts.",
+  "gundog-training": "Maybe you're looking for guidance with a lively, high-drive gundog.",
+  "behaviour-support": "Maybe you're feeling overwhelmed by your dog's behaviour and don't know what to do next.",
+};
+
 const FALLBACK_DOGS: FamilyDog[] = [
-  { _id: "fallback-lenny", name: "Lenny", bio: "One of the resident test-and-approval team — every class gets the Lenny nose of approval." },
-  { _id: "fallback-percy", name: "Percy", breed: "Working Cocker Spaniel", bio: "Our resident have-a-go hero — first in the water, first over the fence." },
-  { _id: "fallback-willow", name: "Willow", bio: "Keeps the household honest and the training bar high." },
-  { _id: "fallback-teak", name: "Teak", breed: "HPR", bio: "Our tracking and scent-work specialist — proof that training adapts around whatever health story a dog brings with it." },
-  { _id: "fallback-harry", name: "Harry", breed: "English Springer", bio: "Had his first shooting season in 2022/23, putting his gundog training to work in the field." },
-  { _id: "fallback-ron", name: "Ron", bio: "A rescue who came to us working through separation-related anxiety and arousal — living proof force-free behaviour work gets real results." },
-  { _id: "fallback-jim", name: "Jim", breed: "Collie", bio: "Becs' agility partner, and the family's resident overachiever." },
+  { _id: "briar", name: "Briar", bio: "Our first dog, and the one who taught us more than any other — with us for fourteen wonderful years before we said goodbye in August 2022. His legacy shaped everything we do, right down to the name behind Briarrose Gundogs.", legacy: true },
+  { _id: "sam", name: "Sam", bio: "Our first Many Tears rescue, and the dog who taught us what it takes to support a reactive dog. We lost him to cancer in 2017, aged just ten.", legacy: true },
+  { _id: "percy", name: "Percy", breed: "Cavalier / Cocker / Pug cross", bio: "Our have-a-go hero — gundog work, agility, scent work and tracking, always giving 150%.", legacy: false },
+  { _id: "teak", name: "Teak", breed: "HPR", bio: "Our hunter — mountains of energy, drawn to man-trailing and scent work.", legacy: false },
+  { _id: "harry", name: "Harry", breed: "English Springer Spaniel", bio: "Mad as a box of frogs and born to work — completed his first shooting season in 2022/23.", legacy: false },
+  { _id: "jimmy", name: "Jimmy", breed: "Collie", bio: "Our first collie, joined the family in July 2022 and is progressing nicely through his agility foundations.", legacy: false },
+  { _id: "ron", name: "Ron", breed: "English Springer Spaniel", bio: "Came to us as an emergency foster — still building confidence, with a wonderful nose on him.", legacy: false },
+  { _id: "willow", name: "Willow", breed: "Spaniel", bio: "The only lady of the household — Crufts Novice Agility Cup runner-up, 2017.", legacy: false },
+  { _id: "lenny", name: "Lenny", legacy: false },
 ];
 
-const DOG_AVATAR_COLORS = ["var(--brand-700)", "var(--moss)", "var(--brand)", "var(--brand-800)"];
+const FALLBACK_FAMILY_PROFILE: FamilyProfile = {
+  oliverName: "Oliver",
+  oliverBio: [
+    { _type: "block", children: [{ text: "VSA graduate (2018), with further study through Illis ABC, Suzanne Clothier's CARAT programme, and Family Dog Mediator training under Kim Brophey. Gundogs — especially Vizslas — are his particular passion." }] },
+  ],
+  oliverCredentials: [
+    "VSA-Certified Dog Trainer (VSA-CDT)",
+    "Illis ABC — Animal Emotion & Advanced Animal Training",
+    "CARAT graduate — Suzanne Clothier",
+    "Family Dog Mediator — Kim Brophey",
+  ],
+  becsName: "Becs",
+  becsBio: [
+    { _type: "block", children: [{ text: "A Registered Veterinary Nurse since 2004 and now Practice Manager at Sandhole Veterinary Practice, Becs runs our Puppy School and Youth Club classes and trains Willow and Percy in agility." }] },
+  ],
+};
 
-const PROMISE_ITEMS = [
-  "No aversive tools, ever",
-  "Reward-based, relationship-first methods",
-  "Accountable to recognised training bodies",
-  "VSA (Victoria Stilwell Academy) graduate-led",
-];
-
-function CheckIcon() {
-  return (
-    <svg aria-hidden="true" viewBox="0 0 24 24" width="14" height="14" fill="none">
-      <path d="M20 6L9 17l-5-5" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
-    </svg>
-  );
-}
-
-function ServiceIcon({ icon }: { icon?: string | null }) {
-  if (icon === "behaviour") {
-    return (
-      <svg aria-hidden="true" viewBox="0 0 24 24" width="26" height="26" fill="currentColor">
-        <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
-      </svg>
-    );
-  }
-  if (icon === "gundog") {
-    return (
-      <svg aria-hidden="true" viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" strokeWidth="1.6">
-        <circle cx="12" cy="12" r="9" />
-        <circle cx="12" cy="12" r="5" />
-        <circle cx="12" cy="12" r="1.4" fill="currentColor" stroke="none" />
-      </svg>
-    );
-  }
-  // "puppy" and "training" (and any unrecognised keyword) share a paw mark.
-  return (
-    <svg aria-hidden="true" viewBox="0 0 24 24" width="26" height="26" fill="currentColor">
-      <circle cx="12" cy="16" r="5" />
-      <circle cx="5" cy="8" r="2.3" />
-      <circle cx="10.5" cy="4.3" r="2.3" />
-      <circle cx="15.5" cy="4.3" r="2.3" />
-      <circle cx="19" cy="8" r="2.3" />
-    </svg>
-  );
+function blocksToParagraphs(blocks?: PortableTextBlock[] | null): string[] {
+  if (!blocks) return [];
+  return blocks
+    .map((b) => (b.children || []).map((c) => c.text || "").join(""))
+    .filter((text) => text.trim().length > 0);
 }
 
 export default async function HomePage() {
-  const [settings, services, dogs, testimonials] = await Promise.all([
+  const [settings, services, dogs, testimonials, familyProfile] = await Promise.all([
     sanityFetch<SiteSettings>(SITE_SETTINGS_QUERY, {}, FALLBACK_SETTINGS),
     sanityFetch<Service[]>(SERVICES_QUERY, {}, FALLBACK_SERVICES),
     sanityFetch<FamilyDog[]>(FAMILY_DOGS_QUERY, {}, FALLBACK_DOGS),
     sanityFetch<Testimonial[]>(FEATURED_TESTIMONIALS_QUERY, {}, []),
+    sanityFetch<FamilyProfile>(FAMILY_PROFILE_QUERY, {}, FALLBACK_FAMILY_PROFILE),
   ]);
 
   const bookHref = settings.classBookingUrl || "#book";
   const coursesHref = settings.onlineLearningUrl || "/online-learning";
-  const behaviourHref = settings.behaviourBookingUrl || "#book";
-  const emailHref = settings.email ? `mailto:${settings.email}` : "#book";
+  const behaviourHref = settings.behaviourBookingUrl || bookHref;
+
+  const currentDogs = dogs.filter((d) => !d.legacy);
+  const legacyDogs = dogs.filter((d) => d.legacy);
+
+  const testimonialsByService = new Map<string, Testimonial[]>();
+  const generalTestimonials: Testimonial[] = [];
+  for (const t of testimonials) {
+    if (t.relatedService?.slug) {
+      const list = testimonialsByService.get(t.relatedService.slug) || [];
+      list.push(t);
+      testimonialsByService.set(t.relatedService.slug, list);
+    } else {
+      generalTestimonials.push(t);
+    }
+  }
+
+  const oliverParagraphs = blocksToParagraphs(familyProfile.oliverBio);
+  const becsParagraphs = blocksToParagraphs(familyProfile.becsBio);
+  const trainingPromiseParagraphs = blocksToParagraphs(familyProfile.trainingPromise);
+  const promiseQuote =
+    trainingPromiseParagraphs[0] ||
+    "We are committed to training animals without the use of fear or intimidation, using modern, force-free scientific principles — every dog, every time.";
 
   return (
     <>
-      {/* Hero — trust chips first (this is the top design priority: read
-          as credible and caring before anything else), then the real,
-          already-established tagline copy. */}
-      <section className="hero">
-        <div className="container hero-inner">
-          <div className="badge-row">
-            <span className="badge">
-              <CheckIcon />
-              Force-free, always
-            </span>
-            <span className="badge">
-              <CheckIcon />
-              Est. 2018
-            </span>
-            <span className="badge">
-              <CheckIcon />
-              VSA graduate-led
-            </span>
-          </div>
-          <span className="eyebrow">{settings.heroEyebrow}</span>
-          <h1>{settings.heroHeadline}</h1>
-          <p className="lead">{settings.heroSubhead}</p>
-          <div className="actions">
-            <a href={bookHref} className="pill solid lg">
-              Book Now
-            </a>
-            <a href={coursesHref} className="pill lg">
-              Explore Online Courses
-            </a>
-          </div>
+      {/* ---------------------------------------------------------------
+          Hero — real photo, real established copy, no badge row.
+          --------------------------------------------------------------- */}
+      <section className="hero on-dark">
+        <div className="hero-media">
+          {settings.heroImage?.asset?.url ? (
+            <Image
+              src={settings.heroImage.asset.url}
+              alt="Oliver and Becs with the Dog Smart family of dogs"
+              fill
+              priority
+              sizes="100vw"
+            />
+          ) : null}
         </div>
-      </section>
-
-      {/* Force-free promise — the core trust signal, made explicit
-          rather than left implied. */}
-      <section className="promise-band">
-        <div className="container promise-grid">
-          <div className="promise-copy">
-            <span className="eyebrow">Our Promise</span>
-            <h2>Force-free. Every dog, every time.</h2>
-            <p>
-              No choke chains, no shock collars, no intimidation — just reward-based methods that build trust
-              instead of fear. It’s not a marketing line, it’s the only way we train.
-            </p>
-          </div>
-          <ul className="promise-list">
-            {PROMISE_ITEMS.map((item) => (
-              <li key={item}>
-                <span className="icon-check">
-                  <CheckIcon />
-                </span>
-                {item}
-              </li>
-            ))}
-          </ul>
-        </div>
-      </section>
-
-      {/* Services */}
-      <section className="list-section container">
-        <div className="list-head">
-          <span className="eyebrow">What We Offer</span>
-          <h2>Support for every stage</h2>
-          <p>From puppy foundations to specialist gundog and behaviour work — all built around the same force-free promise.</p>
-        </div>
-        <div className="card-grid">
-          {services.map((service) => (
-            <div className="card" key={service._id}>
-              <span className="card-icon">
-                <ServiceIcon icon={service.icon} />
-              </span>
-              <h3>{service.title}</h3>
-              <p>{service.summary}</p>
+        <div className="container">
+          <div className="hero-inner">
+            {settings.heroEyebrow ? <p className="eyebrow">{settings.heroEyebrow}</p> : null}
+            <h1>{settings.heroHeadline}</h1>
+            {settings.heroSubhead ? <p className="lead">{settings.heroSubhead}</p> : null}
+            <div className="actions">
+              <a href={bookHref} className="pill solid lg">
+                Book Now
+              </a>
+              <a href={coursesHref} className="pill on-dark lg">
+                Explore Online Courses
+              </a>
             </div>
-          ))}
-        </div>
-      </section>
-
-      {/* "The Dog Smart family" — the established brand language,
-          anchoring the story rather than appearing once as a slogan. */}
-      <section className="story-band container">
-        <div className="story-grid">
-          <div className="story-panel" aria-hidden="true" />
-          <div className="story-copy">
-            <span className="eyebrow">{settings.familyEyebrow}</span>
-            <p className="family-quote">{settings.familyHeadline}</p>
-            <p>
-              Dog Smart started in 2018, when Oliver — a Victoria Stilwell Academy graduate — and his wife Becs
-              decided Sevenoaks needed a different kind of dog training: force-free, relationship-first, and
-              genuinely personal.
-            </p>
-            <p>
-              Becs works in the veterinary profession and runs our Agility sessions; between the two of them (and a
-              very full house of family dogs) Dog Smart has grown into exactly what the name says — a family, not
-              just a training service.
-            </p>
-            <ul className="credentials">
-              <li>VSA (Victoria Stilwell Academy) Graduate</li>
-              <li>Force-Free &amp; Reward-Based</li>
-              <li>Est. 2018 · Sevenoaks, Kent</li>
-            </ul>
           </div>
         </div>
       </section>
 
-      {/* Meet the family (dogs) */}
-      <section className="family-strip">
+      {/* ---------------------------------------------------------------
+          Lede — "every dog is different", in Oliver's own real voice.
+          --------------------------------------------------------------- */}
+      <section className="lede-section">
+        <div className="container-narrow">
+          <p className="lede-lead">People come to us for different reasons — and that&rsquo;s exactly how it should be.</p>
+          <p>
+            Maybe you&rsquo;re looking for guidance with a lively gundog. Maybe you&rsquo;ve just brought home a puppy
+            and want to start things right. Maybe you&rsquo;re feeling overwhelmed by your dog&rsquo;s behaviour and
+            don&rsquo;t know what to do next.
+          </p>
+          <p>Wherever you&rsquo;re at — we&rsquo;ll meet you there.</p>
+        </div>
+      </section>
+
+      {/* ---------------------------------------------------------------
+          Services — alternating photo/text rows, real photos per
+          service, a contextual real testimonial where one exists.
+          --------------------------------------------------------------- */}
+      <section className="services-section">
         <div className="container">
           <div className="list-head">
-            <span className="eyebrow">Meet the Family</span>
-            <h2>Seven dogs, one very full house</h2>
-            <p>Every class, consult and course is shaped by living with these seven — real dogs, real quirks, real training in action.</p>
+            <p className="eyebrow">Start Your Journey</p>
+            <h2>Choose the path that fits how you&rsquo;re feeling</h2>
+          </div>
+
+          <div className="service-rows">
+            {services.map((service) => {
+              const matched = testimonialsByService.get(service.slug)?.[0];
+              return (
+                <article className="service-row" key={service._id}>
+                  <div className="service-photo photo-frame">
+                    {service.heroImage?.asset?.url ? (
+                      <Image
+                        src={service.heroImage.asset.url}
+                        alt=""
+                        fill
+                        sizes="(max-width: 760px) 100vw, 40vw"
+                      />
+                    ) : null}
+                  </div>
+                  <div className="service-copy">
+                    <p className="eyebrow">{service.title}</p>
+                    <h3>{SERVICE_INTROS[service.slug] || service.title}</h3>
+                    {service.summary ? <p>{service.summary}</p> : null}
+                    {matched ? (
+                      <div className="service-quote">
+                        <div>
+                          <p>&ldquo;{matched.quote}&rdquo;</p>
+                          <cite>
+                            — {matched.clientName || "A Dog Smart client"}
+                            {matched.dogName ? ` & ${matched.dogName}` : ""}
+                          </cite>
+                        </div>
+                      </div>
+                    ) : null}
+                    <a href={bookHref} className="pill">
+                      Explore {service.title}
+                    </a>
+                  </div>
+                </article>
+              );
+            })}
+          </div>
+        </div>
+      </section>
+
+      {/* ---------------------------------------------------------------
+          Force-free promise — real pull-quote + real accreditation.
+          --------------------------------------------------------------- */}
+      <section className="promise-section">
+        <div className="container-narrow">
+          <p className="eyebrow">Our Promise</p>
+          <blockquote>&ldquo;{promiseQuote}&rdquo;</blockquote>
+          <div className="credential-strip">
+            {CREDENTIAL_LOGOS.map((logo) => (
+              <img key={logo.id} src={credentialUrl(logo.id)} alt={logo.alt} loading="lazy" />
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ---------------------------------------------------------------
+          Founding story — real Oliver + Becs photos and bios.
+          --------------------------------------------------------------- */}
+      <section className="story-section">
+        <div className="container">
+          <div className="story-head">
+            <p className="eyebrow">Since 2018</p>
+            <h2>{familyProfile.introHeadline || settings.familyHeadline}</h2>
+          </div>
+          <div className="founders">
+            <div className="founder">
+              <div className="founder-photo photo-frame">
+                {familyProfile.oliverPhoto?.asset?.url ? (
+                  <Image src={familyProfile.oliverPhoto.asset.url} alt={familyProfile.oliverName || "Oliver"} fill sizes="(max-width: 760px) 100vw, 25vw" />
+                ) : null}
+              </div>
+              <h3>{familyProfile.oliverName || "Oliver"}</h3>
+              {oliverParagraphs.map((para, i) => (
+                <p key={i}>{para}</p>
+              ))}
+              {familyProfile.oliverCredentials && familyProfile.oliverCredentials.length > 0 ? (
+                <ul className="founder-credentials">
+                  {familyProfile.oliverCredentials.map((c) => (
+                    <li key={c}>{c}</li>
+                  ))}
+                </ul>
+              ) : null}
+            </div>
+            <div className="founder">
+              <div className="founder-photo photo-frame">
+                {familyProfile.becsPhoto?.asset?.url ? (
+                  <Image src={familyProfile.becsPhoto.asset.url} alt={familyProfile.becsName || "Becs"} fill sizes="(max-width: 760px) 100vw, 25vw" />
+                ) : null}
+              </div>
+              <h3>{familyProfile.becsName || "Becs"}</h3>
+              {becsParagraphs.map((para, i) => (
+                <p key={i}>{para}</p>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ---------------------------------------------------------------
+          Meet the family — real dog photos; Briar & Sam kept separate
+          as a quiet in-memoriam block.
+          --------------------------------------------------------------- */}
+      <section className="family-section">
+        <div className="container">
+          <div className="family-head">
+            <p className="eyebrow">{settings.familyEyebrow || "The Dog Smart Family"}</p>
+            <h2>Meet the Family</h2>
           </div>
           <div className="dog-grid">
-            {dogs.map((dog, index) => (
+            {currentDogs.map((dog) => (
               <div className="dog-card" key={dog._id}>
-                <span
-                  className="dog-avatar"
-                  style={{ background: DOG_AVATAR_COLORS[index % DOG_AVATAR_COLORS.length] }}
-                  aria-hidden="true"
-                >
-                  {dog.name.charAt(0)}
-                </span>
+                {dog.photo?.asset?.url ? (
+                  <div className="dog-photo photo-frame">
+                    <Image src={dog.photo.asset.url} alt={dog.name} fill sizes="(max-width: 760px) 45vw, 200px" />
+                  </div>
+                ) : (
+                  <div className="dog-photo is-empty">
+                    <span>Photo coming soon</span>
+                  </div>
+                )}
                 <h3>{dog.name}</h3>
-                {dog.breed ? <span className="breed">{dog.breed}</span> : null}
-                <p>{dog.bio}</p>
+                {dog.breed ? <p>{dog.breed}</p> : null}
               </div>
             ))}
+          </div>
+
+          {legacyDogs.length > 0 ? (
+            <div className="legacy-block">
+              <div className="legacy-head">
+                <p className="eyebrow">Always Part of the Family</p>
+                <p>The dogs who came before, and who shaped everything Dog Smart is today.</p>
+              </div>
+              <div className="legacy-grid">
+                {legacyDogs.map((dog) => (
+                  <div className="legacy-card" key={dog._id}>
+                    {dog.photo?.asset?.url ? (
+                      <div className="legacy-photo photo-frame">
+                        <Image src={dog.photo.asset.url} alt={dog.name} fill sizes="88px" />
+                      </div>
+                    ) : (
+                      <div className="legacy-photo dog-photo is-empty" />
+                    )}
+                    <div>
+                      <h4>{dog.name}</h4>
+                      {dog.bio ? <p>{dog.bio}</p> : null}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ) : null}
+        </div>
+      </section>
+
+      {/* ---------------------------------------------------------------
+          Reviews — real featured testimonials if any exist yet, plus
+          honest links to actual Google/Facebook reviews. Never
+          fabricated.
+          --------------------------------------------------------------- */}
+      <section className="reviews-section">
+        <div className="container-narrow">
+          <p className="eyebrow" style={{ textAlign: "center", display: "block" }}>
+            What Clients Say
+          </p>
+          {generalTestimonials.length > 0 ? (
+            <div className="quote-grid">
+              {generalTestimonials.map((t) => (
+                <div className="quote-card" key={t._id}>
+                  <p>&ldquo;{t.quote}&rdquo;</p>
+                  <cite>
+                    — {t.clientName || "A Dog Smart client"}
+                    {t.dogName ? ` & ${t.dogName}` : ""}
+                  </cite>
+                </div>
+              ))}
+            </div>
+          ) : null}
+          <div className="review-links">
+            <p>Read real, verified reviews from clients across Sevenoaks, Tunbridge Wells and Kent:</p>
+            <a href="https://g.co/kgs/yW62gJx" className="pill">
+              Google Reviews
+            </a>
+            <a href="https://www.facebook.com/dogsmarttraining" className="pill">
+              Facebook Reviews
+            </a>
           </div>
         </div>
       </section>
 
-      {/* Real testimonials once they're in Sanity (Studio → Reviews,
-          "Feature on homepage" switched on); until then, verifiable
-          facts stand in rather than invented quotes. */}
-      {testimonials.length > 0 ? (
-        <section className="trust-band container">
-          <div className="list-head">
-            <span className="eyebrow">What Families Say</span>
-            <h2>Real words from real Dog Smart families</h2>
-          </div>
-          <div className="quote-grid">
-            {testimonials.map((testimonial) => (
-              <div className="quote-card" key={testimonial._id}>
-                <blockquote>&ldquo;{testimonial.quote}&rdquo;</blockquote>
-                <cite>
-                  — {testimonial.clientName || "Dog Smart client"}
-                  {testimonial.dogName ? ` & ${testimonial.dogName}` : ""}
-                  {testimonial.location ? `, ${testimonial.location}` : ""}
-                </cite>
-              </div>
-            ))}
-          </div>
-        </section>
-      ) : (
-        <section className="trust-band container">
-          <div className="stats-grid">
-            <div className="stat">
-              <strong>2018</strong>
-              <span>Founded in Sevenoaks</span>
-            </div>
-            <div className="stat">
-              <strong>100%</strong>
-              <span>Force-free methods</span>
-            </div>
-            <div className="stat">
-              <strong>7</strong>
-              <span>Family dogs (and counting)</span>
-            </div>
-            <div className="stat">
-              <strong>VSA</strong>
-              <span>Graduate-led training</span>
-            </div>
-          </div>
-        </section>
-      )}
-
-      {/* CTA / booking band */}
+      {/* ---------------------------------------------------------------
+          CTA band
+          --------------------------------------------------------------- */}
       <section className="cta-band on-dark" id="book">
-        <div className="container">
-          <span className="eyebrow">{settings.ctaEyebrow}</span>
+        <div className="container-narrow">
+          <p className="eyebrow">{settings.ctaEyebrow}</p>
           <h2>{settings.ctaHeadline}</h2>
-          <p>{settings.ctaBody}</p>
+          {settings.ctaBody ? <p>{settings.ctaBody}</p> : null}
           <div className="actions">
             <a href={bookHref} className="pill solid on-dark lg">
               Book a Class
             </a>
-            <a href={emailHref} className="pill on-dark lg">
+            <a
+              href={settings.email ? `mailto:${settings.email}` : bookHref}
+              className="pill on-dark lg"
+            >
               Ask a Question
             </a>
           </div>
           <a href={behaviourHref} className="secondary-link">
-            Behaviour concern? Book a one-to-one consult instead
+            Struggling with a behaviour concern? Book a one-to-one consult instead
           </a>
         </div>
       </section>

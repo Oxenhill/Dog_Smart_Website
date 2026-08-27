@@ -1,19 +1,26 @@
 @import "tailwindcss";
 
 /* ---------------------------------------------------------------------
- * Dog Smart Training & Behaviour — design system (v2, homepage pass)
+ * Dog Smart Training & Behaviour — design system (v3, real-content pass)
  *
- * Same component architecture as the Briarrose Gundogs build (cascade
- * layers, CSS custom properties mapped into Tailwind's @theme), but this
- * pass replaces the first-draft placeholder with a considered system:
- * warm, rounded, confident — built around the brand's true logo orange,
- * with an accessible text/tint scale so the orange can carry real body
- * copy and buttons, not just decoration. A muted sage green is added as
- * a quiet secondary accent for trust/force-free cues, kept well away
- * from anything that could read as "corporate blue-and-grey."
+ * Rebuilt after direct feedback that v2 read as a generic templated
+ * "AI landing page" (badge-row hero, icon-in-a-box service cards, a
+ * gradient decorative blob, monogram-letter avatars standing in for
+ * real photos). This version leans on the thing v2 was missing: real
+ * photography of Oliver, Becs and the dogs, used with a warm translucent
+ * brand-colour treatment so a set of photos shot at very different times
+ * on very different cameras still reads as one consistent, considered
+ * site — matching how Oliver described his own site's visual language.
  *
- * Every color pairing below was checked against WCAG 2.1 AA contrast
- * (4.5:1 text, 3:1 large text / UI boundaries) — see the token comments.
+ * Display type moved from Fredoka (rounded, bubbly, reads as a generic
+ * "friendly app" face) to Fraunces, a warm serif with real character —
+ * built to add the sense of class/craft that was missing without
+ * tipping cold or corporate. Body stays Inter.
+ *
+ * Same cascade-layer architecture and accessible brand-colour scale as
+ * before (kept — it already passes WCAG AA and the orange is the real
+ * logo colour, confirmed). Nav, mobile drawer and focus-visible styling
+ * are unchanged and untouched below; they were already working.
  * ------------------------------------------------------------------- */
 
 @layer reset, base, layout, components;
@@ -75,6 +82,7 @@
     --brand-600: #d35a00; /* large headline text / big UI boundaries, 4.0:1 */
     --brand-700: #b8570a; /* body-size text, links, solid buttons, 4.8:1 */
     --brand-800: #9b4908; /* hover/active state, 6.3:1 */
+    --brand-900: #6f3706; /* deep overlay tint on photos */
     --on-brand: #ffffff;
 
     /* Secondary accent — quiet, natural, used sparingly for the
@@ -86,15 +94,15 @@
     --line: rgba(36, 31, 28, 0.12);
     --line-strong: rgba(36, 31, 28, 0.22);
 
-    --font-display: var(--font-fredoka), 'Fredoka', sans-serif;
+    --font-display: var(--font-fraunces), 'Fraunces', 'Iowan Old Style', Georgia, serif;
     --font-ui: var(--font-inter), 'Inter', sans-serif;
 
     --shadow-sm: 0 1px 2px rgba(36, 31, 28, 0.06), 0 1px 1px rgba(36, 31, 28, 0.04);
     --shadow-md: 0 12px 28px -12px rgba(36, 31, 28, 0.22);
     --shadow-lg: 0 24px 48px -16px rgba(36, 31, 28, 0.28);
 
-    --radius-md: 18px;
-    --radius-lg: 26px;
+    --radius-md: 14px;
+    --radius-lg: 22px;
   }
 
   @theme inline {
@@ -130,8 +138,9 @@
     font-family: var(--font-display);
     font-weight: 600;
     color: inherit;
-    line-height: 1.12;
+    line-height: 1.1;
     text-wrap: balance;
+    font-optical-sizing: auto;
   }
 
   p,
@@ -145,7 +154,7 @@
   }
 
   /* Focus visibility — applied deliberately, not the browser default,
-     so it reads on both light panels and the solid-orange bands. */
+     so it reads on both light panels and photo/solid-orange bands. */
   :where(a, button, [tabindex]):focus-visible {
     outline: 3px solid var(--brand-800);
     outline-offset: 3px;
@@ -196,6 +205,12 @@
     padding-inline: clamp(24px, 5vw, 64px);
   }
 
+  .container-narrow {
+    max-width: 860px;
+    margin-inline: auto;
+    padding-inline: clamp(24px, 5vw, 64px);
+  }
+
   .eyebrow {
     display: inline-flex;
     align-items: center;
@@ -215,7 +230,7 @@
 
 @layer components {
   /* =====================================================================
-     Navigation
+     Navigation (unchanged from the previous pass — already working)
      ===================================================================== */
   header.site-nav {
     position: sticky;
@@ -302,11 +317,7 @@
   }
 
   /* =====================================================================
-     Mobile navigation drawer
-     Pattern: popover="manual" promoted to the top layer + a horizontally
-     scrolling, scroll-snap swipe surface, per the navigation-drawer
-     guidance. Falls back to a plain fixed-position toggle (.is-open) in
-     browsers without Popover API support.
+     Mobile navigation drawer (unchanged — already working)
      ===================================================================== */
   .Drawer {
     --drawer-width: min(20em, 84dvw);
@@ -512,352 +523,457 @@
   }
 
   /* =====================================================================
-     Hero
+     Photo treatment — the "translucent backdrop" language Oliver already
+     uses across his real site, applied consistently so photos shot on
+     very different cameras/lighting still read as one considered brand.
+     A warm, low-opacity brand wash sits over every photo; on the hero
+     (where large white text sits directly on top) it deepens toward the
+     bottom for legibility instead of flattening the whole image.
+     ===================================================================== */
+  .photo-frame {
+    position: relative;
+    overflow: hidden;
+    background: var(--panel);
+  }
+  .photo-frame img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  .photo-frame::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      160deg,
+      color-mix(in oklab, var(--brand-800) 22%, transparent) 0%,
+      color-mix(in oklab, var(--brand-700) 10%, transparent) 55%,
+      transparent 100%
+    );
+    mix-blend-mode: multiply;
+    pointer-events: none;
+  }
+  .photo-frame.no-tint::after {
+    display: none;
+  }
+
+  /* =====================================================================
+     Hero — full-bleed real photo, translucent brand overlay for
+     legibility, real established copy. No decorative gradient blobs,
+     no badge-chip row.
      ===================================================================== */
   .hero {
     position: relative;
-    padding: 76px 0 96px;
+    isolation: isolate;
+    min-height: min(88vh, 760px);
+    display: flex;
+    align-items: flex-end;
     overflow: clip;
+    color: var(--on-brand);
   }
-  .hero::before {
+  .hero-media {
+    position: absolute;
+    inset: 0;
+    z-index: -2;
+    background: linear-gradient(150deg, var(--brand-700), var(--brand-900));
+  }
+  .hero-media img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: 50% 30%;
+  }
+  .hero-media::after {
     content: '';
     position: absolute;
     inset: 0;
-    z-index: -1;
     background:
-      radial-gradient(circle at 12% 8%, color-mix(in oklab, var(--brand) 16%, transparent), transparent 55%),
-      radial-gradient(circle at 88% 0%, color-mix(in oklab, var(--moss) 14%, transparent), transparent 50%),
-      radial-gradient(circle, color-mix(in oklab, var(--brand) 10%, transparent) 2px, transparent 2.5px) 0 0 / 46px 46px;
+      linear-gradient(
+        0deg,
+        color-mix(in oklab, var(--brand-900) 88%, black 10%) 0%,
+        color-mix(in oklab, var(--brand-900) 60%, transparent) 42%,
+        color-mix(in oklab, var(--brand-900) 22%, transparent) 72%,
+        color-mix(in oklab, var(--brand-900) 38%, transparent) 100%
+      );
   }
   .hero-inner {
-    max-width: 900px;
-    margin-inline: auto;
-    text-align: center;
-  }
-  .hero .badge-row {
-    display: flex;
-    justify-content: center;
-    gap: 10px;
-    flex-wrap: wrap;
-    margin-block-end: 22px;
-  }
-  .badge {
-    display: inline-flex;
-    align-items: center;
-    gap: 7px;
-    background: var(--paper);
-    border: 1px solid var(--line-strong);
-    color: var(--ink);
-    padding: 8px 16px;
-    border-radius: 999px;
-    font-size: 0.82rem;
-    font-weight: 600;
-    box-shadow: var(--shadow-sm);
-  }
-  .badge svg {
-    inline-size: 14px;
-    block-size: 14px;
-    color: var(--moss);
-    flex: none;
+    position: relative;
+    max-width: 760px;
+    padding-block: clamp(48px, 10vw, 96px) clamp(56px, 9vw, 84px);
   }
   .hero h1 {
-    font-size: clamp(2.1rem, 4.6vw, 3.6rem);
-    max-width: 20ch;
-    margin: 0 auto 26px;
+    font-size: clamp(2.4rem, 5.2vw, 4rem);
+    font-weight: 600;
+    font-style: italic;
+    margin-block: 14px 18px;
+    max-width: 16ch;
   }
   .hero .lead {
-    color: var(--ink-soft);
-    max-width: 58ch;
-    margin: 0 auto 36px;
     font-size: 1.15rem;
+    max-width: 46ch;
+    color: color-mix(in oklab, var(--on-brand) 92%, transparent);
+    margin-block-end: 32px;
   }
   .hero .actions {
     display: flex;
-    gap: 16px;
-    justify-content: center;
     flex-wrap: wrap;
-  }
-
-  /* =====================================================================
-     Section heads (shared)
-     ===================================================================== */
-  .list-head {
-    text-align: center;
-    max-width: 620px;
-    margin: 0 auto 56px;
-  }
-  .list-head h2 {
-    font-size: clamp(1.7rem, 3.2vw, 2.5rem);
-    margin-block: 14px 14px;
-  }
-  .list-head p {
-    color: var(--ink-soft);
-    font-size: 1.05rem;
-  }
-
-  /* =====================================================================
-     Force-free promise band
-     ===================================================================== */
-  .promise-band {
-    background: var(--moss-tint);
-    padding: 88px 0;
-  }
-  .promise-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-    gap: 56px;
-    align-items: center;
-  }
-  .promise-copy h2 {
-    font-size: clamp(1.6rem, 3vw, 2.3rem);
-    margin-block: 14px 16px;
-  }
-  .promise-copy p {
-    color: var(--ink-soft);
-    font-size: 1.05rem;
-    max-width: 46ch;
-  }
-  .promise-list {
-    list-style: none;
-    display: grid;
-    gap: 16px;
-  }
-  .promise-list li {
-    display: flex;
-    align-items: flex-start;
     gap: 14px;
-    background: var(--paper);
-    border-radius: var(--radius-md);
-    padding: 18px 20px;
-    box-shadow: var(--shadow-sm);
-    font-weight: 600;
-  }
-  .promise-list .icon-check {
-    flex: none;
-    inline-size: 26px;
-    block-size: 26px;
-    border-radius: 50%;
-    background: var(--moss);
-    color: var(--on-brand);
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-  }
-  .promise-list .icon-check svg {
-    inline-size: 14px;
-    block-size: 14px;
   }
 
   /* =====================================================================
-     Services
+     Lede — the empathetic "meet you where you are" opener, in Oliver's
+     own real voice. Plain prose, no cards, no icons.
      ===================================================================== */
-  .list-section {
-    padding: 96px 0;
+  .lede-section {
+    padding-block: clamp(56px, 9vw, 96px) clamp(24px, 5vw, 40px);
   }
-  .card-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-    gap: 26px;
+  .lede-section .container-narrow {
+    text-align: center;
   }
-  .card {
-    container-type: inline-size;
-    background: var(--panel);
-    border-radius: var(--radius-lg);
-    padding: 34px 30px;
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
-  }
-  .card:hover {
-    transform: translateY(-4px);
-    box-shadow: var(--shadow-md);
-  }
-  .card-icon {
-    inline-size: 52px;
-    block-size: 52px;
-    border-radius: 16px;
-    background: var(--paper);
-    color: var(--brand-700);
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
+  .lede-section p.lede-lead {
+    font-family: var(--font-display);
+    font-style: italic;
+    font-size: clamp(1.3rem, 2.6vw, 1.7rem);
+    color: var(--brand-800);
     margin-block-end: 18px;
   }
-  .card-icon svg {
-    inline-size: 26px;
-    block-size: 26px;
-  }
-  .card h3 {
-    font-size: clamp(1.1rem, 4cqi, 1.35rem);
-    margin-block-end: 10px;
-  }
-  .card p {
-    color: var(--ink-soft);
-    font-size: 0.96rem;
-  }
-
-  /* =====================================================================
-     Story / "the Dog Smart family" band
-     ===================================================================== */
-  .story-band {
-    padding: 100px 0;
-  }
-  .story-grid {
-    display: grid;
-    grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
-    gap: 64px;
-    align-items: center;
-  }
-  .story-panel {
-    aspect-ratio: 4 / 5;
-    border-radius: var(--radius-lg);
-    background:
-      radial-gradient(circle at 30% 24%, color-mix(in oklab, var(--brand) 55%, transparent), transparent 42%),
-      radial-gradient(circle at 78% 68%, color-mix(in oklab, var(--moss) 45%, transparent), transparent 46%),
-      linear-gradient(160deg, var(--panel-strong), var(--panel));
-    position: relative;
-    overflow: hidden;
-  }
-  .story-panel::after {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background: repeating-linear-gradient(
-      -45deg,
-      color-mix(in oklab, var(--ink) 5%, transparent) 0 1px,
-      transparent 0 22px
-    );
-  }
-  .story-copy .family-quote {
-    font-family: var(--font-display);
-    font-size: clamp(1.5rem, 2.6vw, 2.1rem);
-    font-weight: 600;
-    color: var(--brand-800);
-    margin-block-end: 20px;
-    text-wrap: balance;
-  }
-  .story-copy p {
+  .lede-section p {
     color: var(--ink-soft);
     font-size: 1.05rem;
-    max-width: 56ch;
-    margin-block-end: 16px;
   }
-  .story-copy .credentials {
-    list-style: none;
-    display: flex;
-    flex-wrap: wrap;
-    gap: 10px;
-    margin-block-start: 22px;
-  }
-  .story-copy .credentials li {
-    background: var(--panel);
-    color: var(--ink);
-    font-size: 0.82rem;
-    font-weight: 600;
-    padding: 8px 14px;
-    border-radius: 999px;
+  .lede-section p + p {
+    margin-block-start: 14px;
   }
 
-  @media (max-width: 860px) {
-    .story-grid {
+  /* =====================================================================
+     Services — "Choose your path". Alternating photo/text rows rather
+     than a uniform icon-card grid, so four real, different services
+     don't get flattened into identical boxes.
+     ===================================================================== */
+  .services-section {
+    padding-block: clamp(40px, 7vw, 64px) clamp(56px, 9vw, 88px);
+  }
+  .services-section .list-head {
+    text-align: center;
+    max-width: 640px;
+    margin-inline: auto;
+    margin-block-end: clamp(36px, 6vw, 56px);
+  }
+  .service-rows {
+    display: flex;
+    flex-direction: column;
+    gap: clamp(40px, 6vw, 64px);
+  }
+  .service-row {
+    display: grid;
+    grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+    gap: clamp(28px, 5vw, 56px);
+    align-items: center;
+  }
+  .service-row:nth-child(even) {
+    grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
+  }
+  .service-row:nth-child(even) .service-photo {
+    order: 2;
+  }
+  .service-photo {
+    aspect-ratio: 4 / 3;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-md);
+  }
+  .service-copy .eyebrow {
+    margin-block-end: 8px;
+  }
+  .service-copy h3 {
+    font-size: clamp(1.4rem, 2.6vw, 1.85rem);
+    margin-block-end: 10px;
+  }
+  .service-copy p {
+    color: var(--ink-soft);
+    margin-block-end: 18px;
+    max-width: 48ch;
+  }
+  .service-quote {
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+    padding: 14px 16px;
+    background: var(--panel);
+    border-radius: var(--radius-md);
+    margin-block-end: 18px;
+  }
+  .service-quote p {
+    margin: 0;
+    font-style: italic;
+    font-size: 0.92rem;
+    color: var(--ink);
+  }
+  .service-quote cite {
+    display: block;
+    font-style: normal;
+    font-size: 0.8rem;
+    color: var(--ink-soft);
+    margin-block-start: 4px;
+  }
+  @media (max-width: 760px) {
+    .service-row,
+    .service-row:nth-child(even) {
       grid-template-columns: 1fr;
     }
-    .story-panel {
-      aspect-ratio: 16 / 9;
-      order: -1;
+    .service-row:nth-child(even) .service-photo {
+      order: 0;
+    }
+    .service-photo {
+      aspect-ratio: 16 / 10;
     }
   }
 
   /* =====================================================================
-     Meet the family (dogs)
+     Force-free promise — a real pull-quote statement plus real,
+     verifiable accreditation marks (VSA, Illis ABC, Family Dog
+     Mediator, UK Dog Training Charter) rather than a generic checkbox
+     list in a coloured band.
      ===================================================================== */
-  .family-strip {
+  .promise-section {
+    background: var(--moss-tint);
+    padding-block: clamp(48px, 8vw, 80px);
+  }
+  .promise-section .container-narrow {
+    text-align: center;
+  }
+  .promise-section blockquote {
+    font-family: var(--font-display);
+    font-style: italic;
+    font-size: clamp(1.5rem, 3.4vw, 2.2rem);
+    color: var(--ink);
+    line-height: 1.25;
+    margin: 0 0 28px;
+  }
+  .credential-strip {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: clamp(20px, 4vw, 40px);
+    margin-block-start: 8px;
+  }
+  .credential-strip img {
+    height: 48px;
+    width: auto;
+    max-width: 120px;
+    object-fit: contain;
+    filter: grayscale(1);
+    opacity: 0.68;
+    transition: filter 0.2s ease, opacity 0.2s ease;
+  }
+  .credential-strip img:hover {
+    filter: none;
+    opacity: 1;
+  }
+
+  /* =====================================================================
+     Founding story — real Oliver + Becs photos and condensed real bios.
+     ===================================================================== */
+  .story-section {
+    padding-block: clamp(56px, 9vw, 96px);
+  }
+  .story-head {
+    max-width: 640px;
+    margin-inline: auto;
+    text-align: center;
+    margin-block-end: clamp(36px, 6vw, 56px);
+  }
+  .founders {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: clamp(28px, 5vw, 56px);
+  }
+  .founder {
+    display: flex;
+    flex-direction: column;
+  }
+  .founder-photo {
+    aspect-ratio: 4 / 5;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-md);
+    margin-block-end: 20px;
+  }
+  .founder h3 {
+    font-size: 1.3rem;
+    margin-block-end: 8px;
+  }
+  .founder p {
+    color: var(--ink-soft);
+    font-size: 0.95rem;
+  }
+  .founder p + p {
+    margin-block-start: 10px;
+  }
+  .founder-credentials {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-block-start: 14px;
+  }
+  .founder-credentials li {
+    list-style: none;
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: var(--brand-800);
     background: var(--panel);
-    padding: 96px 0;
+    border-radius: 999px;
+    padding: 6px 12px;
+  }
+  @media (max-width: 760px) {
+    .founders {
+      grid-template-columns: 1fr;
+      gap: 40px;
+    }
+  }
+
+  /* =====================================================================
+     Meet the family — real dog photos. Current dogs first; Briar and
+     Sam given a quieter, distinct "in loving memory" treatment rather
+     than mixed in identically.
+     ===================================================================== */
+  .family-section {
+    background: var(--panel);
+    padding-block: clamp(56px, 9vw, 96px);
+  }
+  .family-head {
+    max-width: 640px;
+    margin-inline: auto;
+    text-align: center;
+    margin-block-end: clamp(32px, 5vw, 48px);
   }
   .dog-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
-    gap: 22px;
+    gap: 24px;
   }
   .dog-card {
-    background: var(--paper);
-    border-radius: var(--radius-md);
-    padding: 24px 20px;
     text-align: center;
-    box-shadow: var(--shadow-sm);
   }
-  .dog-avatar {
-    inline-size: 68px;
-    block-size: 68px;
-    border-radius: 50%;
-    margin: 0 auto 16px;
+  .dog-photo {
+    aspect-ratio: 1;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-sm);
+    margin-block-end: 12px;
+  }
+  .dog-photo.is-empty {
+    background: linear-gradient(155deg, var(--panel-strong), var(--panel));
     display: flex;
     align-items: center;
     justify-content: center;
+  }
+  .dog-photo.is-empty span {
     font-family: var(--font-display);
-    font-size: 1.4rem;
-    font-weight: 700;
-    color: var(--on-brand);
+    font-style: italic;
+    color: var(--brand-700);
+    opacity: 0.7;
+    font-size: 0.85rem;
   }
   .dog-card h3 {
     font-size: 1.05rem;
     margin-block-end: 2px;
   }
-  .dog-card .breed {
-    display: block;
-    color: var(--ink-soft);
-    font-size: 0.78rem;
-    text-transform: uppercase;
-    letter-spacing: 0.06em;
-    margin-block-end: 10px;
-  }
   .dog-card p {
+    font-size: 0.82rem;
     color: var(--ink-soft);
-    font-size: 0.88rem;
   }
 
-  /* =====================================================================
-     Trust stats / testimonials band
-     ===================================================================== */
-  .trust-band {
-    padding: 88px 0;
+  .legacy-block {
+    margin-block-start: clamp(44px, 6vw, 64px);
+    padding-block-start: clamp(36px, 5vw, 48px);
+    border-top: 1px solid var(--line-strong);
   }
-  .stats-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-    gap: 28px;
+  .legacy-head {
     text-align: center;
+    margin-block-end: 24px;
   }
-  .stat strong {
-    display: block;
-    font-family: var(--font-display);
-    font-size: clamp(1.7rem, 3vw, 2.3rem);
-    color: var(--brand-700);
+  .legacy-head .eyebrow {
+    color: var(--ink-soft);
   }
-  .stat span {
+  .legacy-head p {
+    max-width: 56ch;
+    margin-inline: auto;
     color: var(--ink-soft);
     font-size: 0.92rem;
   }
+  .legacy-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 24px;
+    max-width: 780px;
+    margin-inline: auto;
+  }
+  .legacy-card {
+    display: flex;
+    gap: 16px;
+    align-items: center;
+    text-align: left;
+  }
+  .legacy-photo {
+    flex: none;
+    inline-size: 88px;
+    block-size: 88px;
+    border-radius: 999px;
+    filter: saturate(0.55) sepia(0.18);
+  }
+  .legacy-card h4 {
+    font-family: var(--font-display);
+    font-size: 1.05rem;
+    margin-block-end: 3px;
+  }
+  .legacy-card p {
+    font-size: 0.82rem;
+    color: var(--ink-soft);
+  }
 
+  /* =====================================================================
+     Reviews — honest, real links (Google, Facebook) rather than
+     fabricated quotes or a generic stats band. Featured Sanity
+     testimonials (once Oliver adds them) render as real quote cards
+     above this, grouped by service where relevant.
+     ===================================================================== */
+  .reviews-section {
+    padding-block: clamp(48px, 8vw, 80px);
+  }
   .quote-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-    gap: 24px;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 20px;
+    margin-block-end: clamp(28px, 5vw, 44px);
   }
   .quote-card {
-    background: var(--paper);
+    background: var(--panel);
     border-radius: var(--radius-lg);
-    padding: 30px 28px;
-    box-shadow: var(--shadow-sm);
+    padding: 24px;
   }
-  .quote-card blockquote {
-    font-size: 1.02rem;
-    margin: 0 0 16px;
+  .quote-card p {
+    font-style: italic;
+    color: var(--ink);
   }
   .quote-card cite {
+    display: block;
     font-style: normal;
-    font-size: 0.85rem;
     font-weight: 600;
+    font-size: 0.85rem;
+    margin-block-start: 12px;
+    color: var(--brand-800);
+  }
+  .review-links {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: 14px;
+    text-align: center;
+  }
+  .review-links p {
+    width: 100%;
     color: var(--ink-soft);
+    margin-block-end: 4px;
   }
 
   /* =====================================================================
@@ -866,36 +982,32 @@
   .cta-band {
     background: linear-gradient(150deg, var(--brand-700), var(--brand-800));
     color: var(--on-brand);
-    padding: 96px 0;
-    text-align: center;
+    padding-block: clamp(56px, 9vw, 88px);
   }
-  .cta-band .eyebrow {
-    color: var(--on-brand);
-    opacity: 0.85;
+  .cta-band .container-narrow {
+    text-align: center;
   }
   .cta-band h2 {
     font-size: clamp(1.8rem, 3.4vw, 2.6rem);
-    max-width: 24ch;
-    margin: 14px auto 16px;
+    margin-block: 10px 16px;
   }
   .cta-band p {
     max-width: 52ch;
-    margin: 0 auto 32px;
-    opacity: 0.92;
-    font-size: 1.05rem;
+    margin-inline: auto;
+    margin-block-end: 30px;
+    color: color-mix(in oklab, var(--on-brand) 90%, transparent);
   }
   .cta-band .actions {
     display: flex;
-    gap: 16px;
-    justify-content: center;
     flex-wrap: wrap;
+    justify-content: center;
+    gap: 14px;
     margin-block-end: 20px;
   }
-  .cta-band .secondary-link {
-    display: inline-block;
+  .secondary-link {
     color: var(--on-brand);
-    font-size: 0.92rem;
-    font-weight: 600;
+    opacity: 0.85;
+    font-size: 0.9rem;
     text-decoration: underline;
     text-underline-offset: 3px;
   }
@@ -905,64 +1017,62 @@
      ===================================================================== */
   footer.site-footer {
     background: var(--ink);
-    color: color-mix(in oklab, var(--paper) 82%, transparent);
-    padding: 76px 0 32px;
+    color: color-mix(in oklab, var(--paper) 88%, transparent);
+    padding-block: clamp(48px, 7vw, 72px) 28px;
   }
   .foot-top {
     display: grid;
     grid-template-columns: 1.3fr repeat(3, 1fr);
-    gap: 40px;
-    padding-block-end: 48px;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.14);
+    gap: 32px;
+    padding-block-end: 36px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.12);
   }
   .foot-brand .wordmark-foot {
     font-family: var(--font-display);
-    font-size: 1.25rem;
-    font-weight: 700;
+    font-size: 1.3rem;
+    font-weight: 600;
     color: var(--paper);
-    display: block;
-    margin-block-end: 12px;
   }
   .foot-brand p {
-    font-size: 0.9rem;
+    margin-block-start: 10px;
+    font-size: 0.88rem;
+    color: color-mix(in oklab, var(--paper) 65%, transparent);
     max-width: 32ch;
-    opacity: 0.85;
   }
   .foot-cols h4,
   .foot-contact h4 {
-    font-size: 0.75rem;
-    letter-spacing: 0.1em;
+    font-size: 0.78rem;
     text-transform: uppercase;
-    color: color-mix(in oklab, var(--paper) 60%, transparent);
-    margin-block-end: 16px;
+    letter-spacing: 0.08em;
+    color: color-mix(in oklab, var(--paper) 55%, transparent);
+    margin-block-end: 12px;
   }
   .foot-cols a,
   .foot-contact a {
     display: block;
     text-decoration: none;
+    color: color-mix(in oklab, var(--paper) 85%, transparent);
     font-size: 0.92rem;
-    margin-block-end: 10px;
-    color: color-mix(in oklab, var(--paper) 88%, transparent);
+    padding-block: 4px;
   }
   .foot-cols a:hover,
   .foot-contact a:hover {
     color: var(--brand);
   }
   .foot-contact p {
-    font-size: 0.92rem;
-    margin-block-end: 10px;
-    opacity: 0.85;
+    font-size: 0.88rem;
+    color: color-mix(in oklab, var(--paper) 65%, transparent);
+    margin-block-start: 6px;
   }
   .foot-bottom {
     display: flex;
-    justify-content: space-between;
     flex-wrap: wrap;
-    gap: 10px;
-    padding-block-start: 28px;
-    font-size: 0.8rem;
-    opacity: 0.7;
+    justify-content: space-between;
+    gap: 8px;
+    padding-block-start: 20px;
+    font-size: 0.82rem;
+    color: color-mix(in oklab, var(--paper) 55%, transparent);
   }
-
   @media (max-width: 860px) {
     .foot-top {
       grid-template-columns: 1fr 1fr;

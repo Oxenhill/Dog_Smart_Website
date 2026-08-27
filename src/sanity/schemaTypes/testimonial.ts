@@ -25,6 +25,13 @@ export default defineType({
       options: { list: ['Google', 'Facebook', 'Submitted via website', 'Direct / other'] },
     }),
     defineField({ name: 'sourceUrl', title: 'Link to the original (optional)', type: 'url' }),
+    defineField({
+      name: 'relatedService',
+      title: 'Which training type is this about? (optional)',
+      type: 'reference',
+      to: [{ type: 'service' }],
+      description: 'Set this to have the review appear alongside that specific service (e.g. a Behaviour Support review under Behaviour Support) instead of only in the general reviews band.',
+    }),
     defineField({ name: 'approved', title: 'Approved — show on site?', type: 'boolean', initialValue: true }),
     defineField({ name: 'featured', title: 'Feature on homepage?', type: 'boolean', initialValue: false }),
     defineField({ name: 'order', title: 'Display order', type: 'number', initialValue: 0 }),

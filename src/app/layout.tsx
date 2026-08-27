@@ -1,11 +1,13 @@
 import type { Metadata } from "next";
-import { Fredoka, Inter } from "next/font/google";
+import { Fraunces, Inter } from "next/font/google";
 import "./globals.css";
 
-const fredoka = Fredoka({
+const fraunces = Fraunces({
   subsets: ["latin"],
-  variable: "--font-fredoka",
+  variable: "--font-fraunces",
   weight: ["500", "600", "700"],
+  style: ["normal", "italic"],
+  axes: ["opsz", "SOFT", "WONK"],
 });
 
 const inter = Inter({
@@ -24,7 +26,7 @@ export default function RootLayout({
 }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="en">
-      <body className={`${fredoka.variable} ${inter.variable}`}>
+      <body className={`${fraunces.variable} ${inter.variable}`}>
         {children}
       </body>
     </html>
