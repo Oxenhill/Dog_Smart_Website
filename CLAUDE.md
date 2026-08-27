@@ -76,12 +76,99 @@ seed content — not an empty schema: 9 `dog` documents (6 current +
 Briar/Sam as legacy + a minimal Lenny stub), the `familyProfile` and
 `siteSettings` singletons, and 4 `service` documents, all with real
 photos pulled from the live Wix site and uploaded as Sanity image
-assets. Everything is still editable by Oliver via `/studio` — the
-seed just means the homepage now shows real content instead of
-fallback copy. Still to build: the other page templates (About,
-Services, FAQ, Contact, Blog, Online Learning), the AI chatbot, and
-the Facebook/Google review-sync + AI placement engine (see "Reviews"
-below — deliberately deferred).
+assets. Everything is still editable by Oliver via `/studio`.
+
+All core pages are now built (see "Phase 2: rest-of-site pages" below):
+Home, About, Services (index + 4 detail pages), Online Learning, Blog,
+FAQ, Contact — all wired to Sanity with real, non-fabricated fallback
+content. New `enquiry` schema type + `/api/enquiry` route give the
+Contact page a working form. Still to build: the AI chatbot, the
+Facebook/Google review-sync + AI placement engine (see "Reviews"
+below — deliberately deferred), a dedicated Gallery/Reviews page (Wix
+content didn't extract cleanly — needs a manual pull or Oliver's
+input), the full Privacy Policy text (source page is image-rendered
+on Wix, needs a fresh pull), real Blog posts (genuinely new content —
+ask Oliver for topics rather than inventing them), and the actual
+Teachable → Sanity `course` content migration (Online Learning
+currently shows real course names as "moving here soon" and links out
+to the live Teachable site).
+
+## Phase 2: rest-of-site pages (27 Aug 2026)
+
+Built out everything the nav links to, reusing the v2 homepage's design
+language rather than starting a new visual direction — real photography
+with `.photo-frame`, alternating photo/text rows, Fraunces headings,
+the accessible brand-orange scale. Ran the `modern-web-guidance` skill
+again for FAQ disclosure and form patterns before writing any of it.
+
+- **Content sourcing**: re-pulled the live Wix site (WebFetch for
+  `/generaldogtraininginsevenoaks`, `/puppy-support`, `/gundog-support`,
+  `/behaviour-support`, `/about-1`, `/where-we-train`; Claude-in-Chrome
+  browser automation to expand the FAQ page's accordion, since its
+  answers only exist in the DOM once each `<details>`-style question is
+  clicked — 27 General Q&As plus the Cancellations/Refunds Q&A were
+  extracted this way, one click-and-read pass per question). Real copy
+  only — nothing invented. Found a third real team member on the About
+  page, Louise Warman, not previously in the schema; added a generic
+  `familyProfile.additionalTeam` array field rather than hardcoding her
+  as a one-off. `/reviews`, `/gallery` and the full `/privacy-policy`
+  text still didn't extract cleanly (canvas widget / image-rendered
+  page) — left as follow-up, not guessed at.
+- **Schema**: `familyProfile.additionalTeam` (array of {name, role,
+  bio, photo}); new `enquiry` document type (name, email, phone, topic,
+  message, status) for Contact form submissions, reviewed by Oliver in
+  Studio — no third-party email service wired up, so this is the
+  "actually works today" version rather than a form that goes nowhere.
+- **Queries/types**: extended `queries.ts`/`types.ts` for
+  `SERVICE_BY_SLUG_QUERY` (body + pricingTiers), `FAQ_ITEMS_QUERY`,
+  `POSTS_QUERY`/`POST_BY_SLUG_QUERY`, `COURSES_QUERY`/
+  `COURSE_BY_SLUG_QUERY`, `APPROVED_TESTIMONIALS_QUERY`, and all the
+  per-page header fields already provisioned on `siteSettings`
+  (`aboutPageEyebrow` etc.) that the homepage never queried. New
+  `PortableTextBody` component (`src/components/site/`) wraps
+  `@portabletext/react` with site-matched styles (Fraunces headings,
+  `.photo-frame` inline images, bullet lists) — shared by service,
+  course and blog post bodies instead of three separate renderers.
+- **Services**: `/services` index reuses the homepage's alternating
+  photo/text row as a link card rather than inventing a second grid
+  pattern. `/services/[slug]` has a sticky sidebar with a booking CTA
+  and a pricing card that only renders if `pricingTiers` has entries
+  AND `showPricingSitewide` is on — currently empty/off by default per
+  the pricing caveat, so it shows "get in touch" instead. Real body
+  copy (with subheadings and bullet lists, pulled from Wix) seeded into
+  each service's `body` field via `.seed/seed-content-v2.cjs`.
+- **FAQ**: native `<details>/<summary>` per question (no JS accordion
+  library), grouped under real categories. All 28 real Q&As seeded as
+  `faqItem` documents.
+- **About**: reuses the homepage's `.founders` two-column layout for
+  Oliver/Becs, plus a new `.team-card` row for Louise. Links out to the
+  homepage's dog family section (`/#family`) rather than duplicating
+  the dog grid on a second page.
+- **Contact**: real phone/email/coverage-area/social links from
+  `siteSettings`, plus a genuinely working enquiry form — native HTML
+  form validation, `:user-invalid` styling, a honeypot field, and a
+  redirect-based success/error state so it works even without JS.
+  Submits to `/api/enquiry`, which writes to Sanity as an `enquiry` doc.
+- **Online Learning**: shows the 4 real course names (Pup Smart, Life
+  Skills, Behaviour Toolbox, Force Free Beginners Gundog Course —
+  confirmed directly by Oliver, not guessed) as "moving here soon"
+  cards, with an honest link to the live Teachable site so visitors can
+  still buy them today. `course`/`[slug]` route is built and will pick
+  up real Sanity content the moment a `course` document is published —
+  migrating the actual Teachable video/text content is the next lift.
+- **Blog**: empty state, matching the same honesty pattern as
+  testimonials — no invented posts. `[slug]` route is built and ready.
+- **SEO**: added `sitemap.ts` and `robots.ts` (static routes + dynamic
+  service/post slugs). Structured data and `/llms.txt` (the fuller
+  Briarrose-parity SEO/GEO pass) are still outstanding.
+- **Build note**: `npm install` inside the bridged device shell was too
+  slow/unreliable to finish within the shell's per-call time limit even
+  backgrounded with `nohup` — the process got killed rather than
+  completing. Skipped local `next build` entirely this pass and relied
+  on a careful manual review plus the real Vercel build as the
+  pass/fail signal (per the existing project note that the font-config
+  bug from the first pass only ever surfaced there). It built clean on
+  the first push.
 
 ## Homepage design pass (27 Aug 2026)
 
