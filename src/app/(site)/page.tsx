@@ -272,9 +272,14 @@ export default async function HomePage() {
                         </div>
                       </div>
                     ) : null}
-                    <a href={bookHref} className="pill">
-                      Explore {service.title}
-                    </a>
+                    <div className="actions">
+                      <a href={`/services/${service.slug}`} className="pill solid">
+                        Explore {service.title}
+                      </a>
+                      <a href={service.slug === "behaviour-support" ? behaviourHref : bookHref} className="pill">
+                        {service.slug === "behaviour-support" ? "Book a Consult" : "Book Now"}
+                      </a>
+                    </div>
                   </div>
                 </article>
               );

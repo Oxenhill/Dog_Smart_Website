@@ -715,6 +715,11 @@
     color: var(--ink-soft);
     margin-block-start: 4px;
   }
+  .service-copy .actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
   @media (max-width: 760px) {
     .service-row,
     .service-row:nth-child(even) {
