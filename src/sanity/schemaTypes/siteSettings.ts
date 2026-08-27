@@ -174,6 +174,14 @@ export default defineType({
       description: 'Usually just "/online-learning" — the built-in courses area on this site.',
       initialValue: '/online-learning',
     }),
+    defineField({
+      name: 'briarroseGundogsUrl',
+      title: 'Briarrose Gundogs URL',
+      type: 'url',
+      group: 'booking',
+      description: 'Our sister site — the home of our gundog training and the gundog online course. Linked from the Gundog Training service page and Online Learning.',
+      initialValue: 'https://briarrosegundogs.co.uk',
+    }),
 
     // --- Social --------------------------------------------------------------
     defineField({

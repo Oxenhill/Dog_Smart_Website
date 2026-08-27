@@ -77,22 +77,6 @@ const FALLBACK_FAMILY_PROFILE: FamilyProfile = {
       ],
     },
   ],
-  additionalTeam: [
-    {
-      name: "Louise Warman",
-      role: "Owner at Scrufts, Tufts & Fluffs — assists with group classes & behaviour cases",
-      bio: [
-        {
-          _type: "block",
-          children: [
-            {
-              text: "Louise runs her own dog-walking business and assists Dog Smart with group classes and behaviour cases. She holds a level 3 diploma in animal management and is midway through a level 4 advanced diploma in canine behaviour.",
-            },
-          ],
-        },
-      ],
-    },
-  ],
 };
 
 function blocksToParagraphs(blocks?: PortableTextBlock[] | null): string[] {

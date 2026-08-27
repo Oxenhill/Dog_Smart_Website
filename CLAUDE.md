@@ -93,6 +93,42 @@ Teachable → Sanity `course` content migration (Online Learning
 currently shows real course names as "moving here soon" and links out
 to the live Teachable site).
 
+## Correction pass: Louise Warman, online courses, Briarrose link (27 Aug 2026)
+
+Oliver corrected three things from the Phase 2 build after reviewing it —
+all fixed directly against his feedback, nothing re-guessed.
+
+- **Louise Warman removed**: she shouldn't have been on the site. Cleared
+  `familyProfile.additionalTeam` in Sanity and removed her from the
+  `about/page.tsx` fallback. Left the `additionalTeam` schema field and
+  its rendering block in place (generic, renders nothing when empty) as
+  reusable infrastructure in case a real additional team member needs
+  adding later.
+- **Online Learning reframed**: the courses (Pup Smart, Life Skills,
+  Behaviour Toolbox) aren't sold as standalone products — they're
+  supporting material included with an existing training package. Page
+  copy, card labels and CTAs rewritten throughout to say so ("Learning
+  that comes with your package" instead of "buy now"/"coming soon").
+- **Gundog online course → Briarrose Gundogs**: it's moving off this site
+  entirely, not just being reframed. Removed it from `KNOWN_COURSES` and
+  added a dedicated card linking to Briarrose Gundogs instead. Found
+  Briarrose's real domain (`briarrosegundogs.co.uk`) via the shared
+  Vercel team's project list rather than web search (which returned an
+  unrelated US company of a similar name) — more reliable than guessing
+  for cross-referencing our own sibling sites.
+- **New `siteSettings.briarroseGundogsUrl` field**: CMS-editable (not
+  hardcoded) so Oliver can update it without a redeploy if the domain
+  ever changes. Also added a conditional sidebar card on
+  `/services/gundog-training` ("Home of Our Gundog Work") linking out to
+  Briarrose, since the user's request was that Briarrose be linked
+  "somehow, so people know its the home of our gundog work" — not just
+  from Online Learning but from the Gundog Training service page itself.
+- **Seeded gundog-training service body updated**: the real Wix-pulled
+  bullet "Online course access included with packages" now reads "Access
+  to our online gundog course, hosted at our sister site Briarrose
+  Gundogs" — patched directly in Sanity so it stays accurate now that the
+  course itself is moving.
+
 ## Phase 2: rest-of-site pages (27 Aug 2026)
 
 Built out everything the nav links to, reusing the v2 homepage's design

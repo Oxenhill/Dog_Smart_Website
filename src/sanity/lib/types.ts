@@ -41,6 +41,7 @@ export interface SiteSettings {
   classBookingUrl?: string | null;
   behaviourBookingUrl?: string | null;
   onlineLearningUrl?: string | null;
+  briarroseGundogsUrl?: string | null;
 
   socialLinks?: SocialLink[] | null;
   footerText?: string | null;

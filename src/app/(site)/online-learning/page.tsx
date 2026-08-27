@@ -6,43 +6,50 @@ import type { CourseSummary, SiteSettings } from "@/sanity/lib/types";
 
 export const metadata = {
   title: "Online Learning | Dog Smart Training & Behaviour",
-  description: "Self-paced online courses from Dog Smart Training & Behaviour, moving here from Teachable.",
+  description: "Online course material from Dog Smart Training & Behaviour, included as part of our training packages.",
 };
 
-const FALLBACK_SETTINGS: Pick<SiteSettings, "coursesPageEyebrow" | "coursesPageHeading" | "coursesPageBody" | "onlineLearningUrl"> = {
+const FALLBACK_SETTINGS: Pick<
+  SiteSettings,
+  "coursesPageEyebrow" | "coursesPageHeading" | "coursesPageBody" | "onlineLearningUrl" | "briarroseGundogsUrl"
+> = {
   coursesPageEyebrow: "Online Learning",
-  coursesPageHeading: "Learn at your own pace",
-  coursesPageBody: "Our self-paced courses are moving here from our current course platform — in the meantime, they're still available to buy right now.",
+  coursesPageHeading: "Learning that comes with your package",
+  coursesPageBody:
+    "Our online courses aren't sold on their own — they're included as supporting material for clients on one of our training packages. If you already have a package with us, your course access lives on our current learning platform below.",
   onlineLearningUrl: "https://online.dogsmarttrainingbehaviour.co.uk",
+  briarroseGundogsUrl: "https://briarrosegundogs.co.uk",
 };
 
-// Real course names, confirmed directly by Oliver — currently hosted on
-// Teachable and being migrated here module by module. Never invent
-// curriculum detail beyond what's confirmed; these show as "moving here
-// soon" until each course is actually built out in Sanity.
+// Real course names, confirmed directly by Oliver — support material for
+// clients on a training package, not sold as standalone products. Never
+// invent curriculum detail beyond what's confirmed.
 const KNOWN_COURSES = [
-  { title: "Pup Smart", note: "Puppy foundations, mostly video with supporting written material." },
-  { title: "Life Skills", note: "Everyday manners and real-life training for adolescent and adult dogs." },
-  { title: "Behaviour Toolbox", note: "Support for reactivity, over-arousal and regulation." },
-  { title: "Force Free Beginners Gundog Course", note: "Gundog fundamentals, force-free from the first retrieve." },
+  { title: "Pup Smart", note: "Puppy foundations, mostly video with supporting written material — included with Puppy Support packages." },
+  { title: "Life Skills", note: "Everyday manners and real-life training for adolescent and adult dogs — included with General Dog Training packages." },
+  { title: "Behaviour Toolbox", note: "Support for reactivity, over-arousal and regulation — included with Behaviour Support packages." },
 ];
 
 export default async function OnlineLearningPage() {
   const [settings, courses] = await Promise.all([
-    sanityFetch<Pick<SiteSettings, "coursesPageEyebrow" | "coursesPageHeading" | "coursesPageBody" | "onlineLearningUrl">>(SITE_SETTINGS_QUERY, {}, FALLBACK_SETTINGS),
+    sanityFetch<
+      Pick<SiteSettings, "coursesPageEyebrow" | "coursesPageHeading" | "coursesPageBody" | "onlineLearningUrl" | "briarroseGundogsUrl">
+    >(SITE_SETTINGS_QUERY, {}, FALLBACK_SETTINGS),
     sanityFetch<CourseSummary[]>(COURSES_QUERY, {}, []),
   ]);
 
-  const externalUrl = settings.onlineLearningUrl && settings.onlineLearningUrl.startsWith("http")
-    ? settings.onlineLearningUrl
-    : "https://online.dogsmarttrainingbehaviour.co.uk";
+  const externalUrl =
+    settings.onlineLearningUrl && settings.onlineLearningUrl.startsWith("http")
+      ? settings.onlineLearningUrl
+      : "https://online.dogsmarttrainingbehaviour.co.uk";
+  const briarroseUrl = settings.briarroseGundogsUrl || "https://briarrosegundogs.co.uk";
 
   return (
     <>
       <section className="page-header">
         <div className="container-narrow">
           <p className="eyebrow">{settings.coursesPageEyebrow || "Online Learning"}</p>
-          <h1>{settings.coursesPageHeading || "Learn at your own pace"}</h1>
+          <h1>{settings.coursesPageHeading || "Learning that comes with your package"}</h1>
           <p className="lede">{settings.coursesPageBody}</p>
         </div>
       </section>
@@ -59,7 +66,6 @@ export default async function OnlineLearningPage() {
                 ) : null}
                 <h3>{course.title}</h3>
                 {course.summary ? <p>{course.summary}</p> : null}
-                {course.price ? <p style={{ fontWeight: 600, color: "var(--brand-800)" }}>{course.price}</p> : null}
               </Link>
             ))}
           </div>
@@ -67,30 +73,37 @@ export default async function OnlineLearningPage() {
           <div className="course-grid">
             {KNOWN_COURSES.map((course) => (
               <div className="course-card" key={course.title}>
-                <span className="status-tag">Moving here soon</span>
+                <span className="status-tag">Included with a package</span>
                 <h3>{course.title}</h3>
                 <p>{course.note}</p>
               </div>
             ))}
+
+            <a href={briarroseUrl} className="course-card">
+              <span className="status-tag">Hosted at Briarrose Gundogs</span>
+              <h3>Gundog Course</h3>
+              <p>
+                Our online gundog course has moved to Briarrose Gundogs — our sister site and the home of all our
+                gundog training and support.
+              </p>
+            </a>
           </div>
         )}
 
         <div className="empty-state">
-          <h2>Available right now</h2>
-          <p>
-            While we build our courses out here, all of them are still available to buy on our current course
-            platform.
-          </p>
+          <h2>Already have a package with us?</h2>
+          <p>Your course material lives on our current learning platform — log in there to pick up where you left off.</p>
           <a href={externalUrl} className="pill solid">
-            Visit Our Course Platform
+            Go to the Learning Platform
           </a>
         </div>
       </div>
 
       <section className="cta-band on-dark" id="book">
         <div className="container-narrow">
-          <p className="eyebrow">Prefer 1:1 Support?</p>
-          <h2>Book a real-life training session instead</h2>
+          <p className="eyebrow">Not on a Package Yet?</p>
+          <h2>Book a real-life training session first</h2>
+          <p>Course material comes as part of a training package — get started with a session and we'll take it from there.</p>
           <div className="actions">
             <a href="/services" className="pill solid on-dark lg">
               Explore Services

@@ -67,7 +67,7 @@ export default defineType({
       name: 'additionalTeam',
       title: 'Additional team members',
       type: 'array',
-      description: 'Other real people who help run Dog Smart (e.g. Louise Warman, who assists with group classes and behaviour cases).',
+      description: 'Other real people who help run Dog Smart, e.g. someone who assists with group classes or behaviour cases.',
       of: [
         {
           type: 'object',

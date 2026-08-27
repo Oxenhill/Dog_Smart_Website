@@ -147,6 +147,23 @@ export default async function ServiceDetailPage({ params }: { params: Promise<{ 
               </a>
             </div>
 
+            {slug === "gundog-training" ? (
+              <div className="sidebar-card">
+                <h3>Home of Our Gundog Work</h3>
+                <p style={{ color: "var(--ink-soft)", fontSize: "0.92rem", marginBottom: "4px" }}>
+                  Our gundog training, groups and online gundog course live on our sister site, Briarrose Gundogs.
+                </p>
+                <a
+                  href={settings.briarroseGundogsUrl || "https://briarrosegundogs.co.uk"}
+                  className="pill"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  Visit Briarrose Gundogs
+                </a>
+              </div>
+            ) : null}
+
             {showPricing ? (
               <div className="sidebar-card">
                 <h3>Pricing</h3>
