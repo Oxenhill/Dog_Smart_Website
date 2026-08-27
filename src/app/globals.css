@@ -1083,4 +1083,461 @@
       grid-template-columns: 1fr;
     }
   }
+
+  /* =====================================================================
+     Page header — shared intro band for interior pages (About, Services,
+     FAQ, Contact, Blog, Online Learning). Deliberately plain: an eyebrow,
+     a headline, an optional supporting line. No photo, no badges — the
+     real photography lives further down each page instead.
+     ===================================================================== */
+  .page-header {
+    padding-block: clamp(48px, 9vw, 84px) clamp(32px, 6vw, 56px);
+    text-align: center;
+  }
+  .page-header .container-narrow {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  .page-header h1 {
+    font-size: clamp(2rem, 4.4vw, 3rem);
+    font-style: italic;
+    margin-block: 12px 14px;
+  }
+  .page-header p.lede {
+    color: var(--ink-soft);
+    font-size: 1.05rem;
+    max-width: 56ch;
+  }
+
+  /* =====================================================================
+     Rich text body (service pages, blog posts) — @portabletext/react
+     output, styled to match the rest of the site rather than the
+     library defaults.
+     ===================================================================== */
+  .prose {
+    max-width: 68ch;
+  }
+  .prose h2 {
+    font-size: 1.5rem;
+    margin-block: 32px 12px;
+  }
+  .prose h3 {
+    font-size: 1.2rem;
+    margin-block: 24px 10px;
+  }
+  .prose p {
+    color: var(--ink-soft);
+    margin-block-end: 16px;
+  }
+  .prose blockquote {
+    font-family: var(--font-display);
+    font-style: italic;
+    font-size: 1.2rem;
+    color: var(--brand-800);
+    border-inline-start: 3px solid var(--brand-600);
+    padding-inline-start: 18px;
+    margin-block: 24px;
+  }
+  .body-list {
+    margin-block-end: 16px;
+    padding-inline-start: 22px;
+    color: var(--ink-soft);
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .body-list li {
+    list-style: disc;
+  }
+  ol.body-list li {
+    list-style: decimal;
+  }
+  .body-photo {
+    aspect-ratio: 16 / 10;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-md);
+    margin-block: 24px;
+  }
+
+  /* =====================================================================
+     About page — founding story reused from the homepage layout, plus a
+     lighter-weight row for additional real team members (e.g. Louise).
+     ===================================================================== */
+  .team-extra {
+    margin-block-start: clamp(40px, 6vw, 64px);
+    padding-block-start: clamp(32px, 5vw, 48px);
+    border-top: 1px solid var(--line);
+  }
+  .team-card {
+    display: grid;
+    grid-template-columns: minmax(0, 200px) 1fr;
+    gap: clamp(20px, 4vw, 36px);
+    align-items: start;
+    max-width: 760px;
+    margin-inline: auto;
+  }
+  .team-card .team-photo {
+    aspect-ratio: 4 / 5;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-sm);
+  }
+  .team-card h3 {
+    font-size: 1.2rem;
+    margin-block-end: 2px;
+  }
+  .team-card .role {
+    color: var(--brand-700);
+    font-weight: 600;
+    font-size: 0.88rem;
+    margin-block-end: 10px;
+  }
+  .team-card p {
+    color: var(--ink-soft);
+    font-size: 0.95rem;
+  }
+  @media (max-width: 560px) {
+    .team-card {
+      grid-template-columns: 120px 1fr;
+    }
+  }
+
+  .promise-callout {
+    background: var(--moss-tint);
+    border-radius: var(--radius-lg);
+    padding: clamp(28px, 5vw, 44px);
+    text-align: center;
+    margin-block: clamp(40px, 6vw, 64px);
+  }
+  .promise-callout blockquote {
+    font-family: var(--font-display);
+    font-style: italic;
+    font-size: clamp(1.2rem, 2.6vw, 1.6rem);
+    color: var(--ink);
+    margin: 0;
+    border: none;
+    padding: 0;
+  }
+
+  /* =====================================================================
+     Services index — reuses .service-row (alternating photo/text) as
+     linked cards rather than a duplicate grid pattern.
+     ===================================================================== */
+  .service-row-link {
+    text-decoration: none;
+    color: inherit;
+    display: block;
+  }
+  .service-row-link .service-copy .pill {
+    pointer-events: none;
+  }
+
+  /* =====================================================================
+     Service detail page
+     ===================================================================== */
+  .service-hero {
+    position: relative;
+    aspect-ratio: 21 / 9;
+    max-height: 460px;
+  }
+  .service-hero .eyebrow-bar {
+    padding-block: 28px 8px;
+  }
+  .service-detail-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 7fr) minmax(260px, 3fr);
+    gap: clamp(32px, 5vw, 64px);
+    padding-block: clamp(40px, 7vw, 72px);
+    align-items: start;
+  }
+  .service-sidebar {
+    position: sticky;
+    top: 100px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+  .sidebar-card {
+    background: var(--panel);
+    border-radius: var(--radius-lg);
+    padding: 24px;
+  }
+  .sidebar-card h3 {
+    font-size: 1.05rem;
+    margin-block-end: 12px;
+  }
+  .sidebar-card .pill {
+    width: 100%;
+    margin-block-start: 6px;
+  }
+  .pricing-tier {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 10px;
+    padding-block: 10px;
+    border-bottom: 1px solid var(--line);
+  }
+  .pricing-tier:last-of-type {
+    border-bottom: none;
+  }
+  .pricing-tier .label {
+    font-weight: 600;
+    font-size: 0.92rem;
+  }
+  .pricing-tier .price {
+    font-family: var(--font-display);
+    color: var(--brand-800);
+    font-weight: 600;
+    white-space: nowrap;
+  }
+  .pricing-tier .period {
+    font-size: 0.78rem;
+    color: var(--ink-soft);
+    font-weight: 400;
+  }
+  @media (max-width: 900px) {
+    .service-detail-layout {
+      grid-template-columns: 1fr;
+    }
+    .service-sidebar {
+      position: static;
+    }
+  }
+
+  /* =====================================================================
+     FAQ — native <details>/<summary> disclosures, grouped by category.
+     Uses the browser's built-in accessible accordion rather than a
+     hand-rolled JS widget.
+     ===================================================================== */
+  .faq-groups {
+    display: flex;
+    flex-direction: column;
+    gap: clamp(40px, 6vw, 56px);
+    padding-block-end: clamp(56px, 9vw, 96px);
+  }
+  .faq-category h2 {
+    font-size: 1.3rem;
+    margin-block-end: 16px;
+    padding-block-end: 10px;
+    border-bottom: 2px solid var(--panel-strong);
+  }
+  .disclosure {
+    border-bottom: 1px solid var(--line);
+  }
+  .disclosure summary {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding-block: 18px;
+    font-weight: 600;
+    font-size: 1rem;
+    cursor: pointer;
+    list-style: none;
+  }
+  .disclosure summary::-webkit-details-marker {
+    display: none;
+  }
+  .disclosure summary::after {
+    content: '+';
+    flex: none;
+    font-family: var(--font-display);
+    font-size: 1.4rem;
+    font-weight: 400;
+    color: var(--brand-700);
+    transition: transform 0.2s ease;
+  }
+  .disclosure[open] summary::after {
+    content: '−';
+  }
+  .disclosure summary:hover {
+    color: var(--brand-700);
+  }
+  .disclosure .answer {
+    color: var(--ink-soft);
+    padding-block-end: 20px;
+    max-width: 68ch;
+    white-space: pre-line;
+  }
+
+  /* =====================================================================
+     Contact page
+     ===================================================================== */
+  .contact-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 4fr) minmax(0, 6fr);
+    gap: clamp(36px, 6vw, 72px);
+    padding-block: clamp(40px, 7vw, 72px) clamp(64px, 9vw, 96px);
+  }
+  .contact-info h2 {
+    font-size: 1.3rem;
+    margin-block-end: 16px;
+  }
+  .contact-detail {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    margin-block-end: 22px;
+  }
+  .contact-detail span.label {
+    font-size: 0.78rem;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    color: var(--ink-soft);
+    font-weight: 700;
+  }
+  .contact-detail a,
+  .contact-detail p {
+    color: var(--ink);
+    text-decoration: none;
+    font-size: 1.02rem;
+  }
+  .contact-detail a:hover {
+    color: var(--brand-700);
+  }
+  .contact-booking-links {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-block-start: 8px;
+  }
+  .contact-form {
+    background: var(--panel);
+    border-radius: var(--radius-lg);
+    padding: clamp(24px, 4vw, 40px);
+  }
+  .contact-form h2 {
+    font-size: 1.3rem;
+    margin-block-end: 6px;
+  }
+  .contact-form > p {
+    color: var(--ink-soft);
+    font-size: 0.92rem;
+    margin-block-end: 24px;
+  }
+  .field {
+    margin-block-end: 20px;
+    display: flex;
+    flex-direction: column;
+  }
+  .field label {
+    font-weight: 600;
+    font-size: 0.9rem;
+    margin-block-end: 6px;
+  }
+  .field .optional {
+    font-weight: 400;
+    color: var(--ink-soft);
+  }
+  .field input,
+  .field select,
+  .field textarea {
+    font: inherit;
+    font-size: 1rem;
+    padding: 12px 14px;
+    min-block-size: 48px;
+    border: 1.5px solid var(--line-strong);
+    border-radius: 10px;
+    background: var(--paper);
+    color: var(--ink);
+  }
+  .field textarea {
+    min-block-size: 120px;
+    resize: vertical;
+  }
+  .field input:focus-visible,
+  .field select:focus-visible,
+  .field textarea:focus-visible {
+    outline: 3px solid var(--brand-800);
+    outline-offset: 1px;
+    border-color: var(--brand-700);
+  }
+  .field input:user-invalid,
+  .field textarea:user-invalid {
+    border-color: #b3261e;
+    background: color-mix(in oklab, #b3261e 6%, var(--paper));
+  }
+  .field .error-msg {
+    display: none;
+    color: #8c1d18;
+    font-size: 0.82rem;
+    margin-block-start: 6px;
+  }
+  .field input:user-invalid + .error-msg,
+  .field textarea:user-invalid + .error-msg {
+    display: block;
+  }
+  .contact-form .pill.solid {
+    width: 100%;
+    margin-block-start: 4px;
+  }
+  .form-notice {
+    border-radius: var(--radius-md);
+    padding: 14px 18px;
+    margin-block-end: 22px;
+    font-size: 0.92rem;
+  }
+  .form-notice.success {
+    background: var(--moss-tint);
+    color: var(--ink);
+  }
+  @media (max-width: 860px) {
+    .contact-layout {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  /* =====================================================================
+     Empty / coming-soon states — Blog, Online Learning, Gallery before
+     Oliver adds real content. Honest, not a fabricated placeholder.
+     ===================================================================== */
+  .empty-state {
+    text-align: center;
+    max-width: 52ch;
+    margin-inline: auto;
+    padding-block: clamp(40px, 7vw, 64px);
+    color: var(--ink-soft);
+  }
+  .empty-state h2 {
+    font-size: 1.3rem;
+    color: var(--ink);
+    margin-block-end: 10px;
+  }
+
+  .course-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 28px;
+    padding-block-end: clamp(56px, 9vw, 88px);
+  }
+  .course-card {
+    background: var(--panel);
+    border-radius: var(--radius-lg);
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .course-card h3 {
+    font-size: 1.15rem;
+  }
+  .course-card p {
+    color: var(--ink-soft);
+    font-size: 0.92rem;
+  }
+  .course-card .status-tag {
+    display: inline-flex;
+    align-self: flex-start;
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: var(--brand-800);
+    background: var(--panel-strong);
+    border-radius: 999px;
+    padding: 4px 12px;
+    margin-block-end: 8px;
+  }
+
 }

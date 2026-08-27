@@ -10,6 +10,7 @@ import galleryItem from './galleryItem'
 import post from './post'
 import policy from './policy'
 import faqItem from './faqItem'
+import enquiry from './enquiry'
 
 export const schema: { types: SchemaTypeDefinition[] } = {
   types: [
@@ -23,5 +24,6 @@ export const schema: { types: SchemaTypeDefinition[] } = {
     post,
     policy,
     faqItem,
+    enquiry,
   ],
 }

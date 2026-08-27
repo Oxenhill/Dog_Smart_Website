@@ -64,6 +64,25 @@ export default defineType({
       description: 'Becs’ background (vet profession) and Agility.',
     }),
     defineField({
+      name: 'additionalTeam',
+      title: 'Additional team members',
+      type: 'array',
+      description: 'Other real people who help run Dog Smart (e.g. Louise Warman, who assists with group classes and behaviour cases).',
+      of: [
+        {
+          type: 'object',
+          name: 'teamMember',
+          fields: [
+            defineField({ name: 'name', title: 'Name', type: 'string', validation: (Rule) => Rule.required() }),
+            defineField({ name: 'role', title: 'Role', type: 'string' }),
+            defineField({ name: 'bio', title: 'Bio', type: 'array', of: [{ type: 'block' }] }),
+            defineField({ name: 'photo', title: 'Photo', type: 'image', options: { hotspot: true } }),
+          ],
+          preview: { select: { title: 'name', subtitle: 'role', media: 'photo' } },
+        },
+      ],
+    }),
+    defineField({
       name: 'becsPhoto',
       title: 'Becs — photo',
       type: 'image',
