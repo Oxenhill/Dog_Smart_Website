@@ -3,6 +3,7 @@ import Image from "next/image";
 import { sanityFetch } from "@/sanity/lib/client";
 import { COURSES_QUERY, SITE_SETTINGS_QUERY } from "@/sanity/lib/queries";
 import type { CourseSummary, SiteSettings } from "@/sanity/lib/types";
+import { getSessionClientId, getEntitledCourses } from "@/lib/courseAccess";
 
 export const metadata = {
   title: "Online Learning | Dog Smart Training & Behaviour",
@@ -30,13 +31,25 @@ const KNOWN_COURSES = [
   { title: "Behaviour Toolbox", note: "Support for reactivity, over-arousal and regulation — included with Behaviour Support packages." },
 ];
 
-export default async function OnlineLearningPage() {
-  const [settings, courses] = await Promise.all([
+export default async function OnlineLearningPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ error?: string }>;
+}) {
+  const { error } = await searchParams;
+
+  const [settings, courses, clientId] = await Promise.all([
     sanityFetch<
       Pick<SiteSettings, "coursesPageEyebrow" | "coursesPageHeading" | "coursesPageBody" | "onlineLearningUrl" | "briarroseGundogsUrl">
     >(SITE_SETTINGS_QUERY, {}, FALLBACK_SETTINGS),
     sanityFetch<CourseSummary[]>(COURSES_QUERY, {}, []),
+    getSessionClientId(),
   ]);
+
+  // Client-specific entitlement is fetched live from Base44 on every visit
+  // — never cached or trusted from anything the browser sends.
+  const entitledKeys = clientId ? await getEntitledCourses(clientId) : [];
+  const myCourses = courses.filter((c) => c.entitlementKey && entitledKeys.includes(c.entitlementKey));
 
   const externalUrl =
     settings.onlineLearningUrl && settings.onlineLearningUrl.startsWith("http")
@@ -55,6 +68,44 @@ export default async function OnlineLearningPage() {
       </section>
 
       <div className="container">
+        {error ? (
+          <div className="empty-state" style={{ marginBlockEnd: "1.5rem" }}>
+            <p>
+              That course-platform link didn&apos;t work (it may have expired) — head back to your account home page
+              on the booking portal and try &ldquo;My Courses&rdquo; again.
+            </p>
+          </div>
+        ) : null}
+
+        {clientId && myCourses.length > 0 ? (
+          <div style={{ marginBlockEnd: "2.5rem" }}>
+            <h2>Your courses</h2>
+            <div className="course-grid">
+              {myCourses.map((course) => (
+                <Link href={`/online-learning/${course.slug}`} className="course-card" key={course._id}>
+                  {course.coverImage?.asset?.url ? (
+                    <div className="photo-frame" style={{ aspectRatio: "16/10", borderRadius: "var(--radius-lg)" }}>
+                      <Image src={course.coverImage.asset.url} alt="" fill sizes="(max-width: 760px) 100vw, 340px" />
+                    </div>
+                  ) : null}
+                  <span className="status-tag">Unlocked</span>
+                  <h3>{course.title}</h3>
+                  {course.summary ? <p>{course.summary}</p> : null}
+                </Link>
+              ))}
+            </div>
+          </div>
+        ) : null}
+
+        {clientId && myCourses.length === 0 ? (
+          <div className="empty-state" style={{ marginBlockEnd: "2.5rem" }}>
+            <p>
+              You&apos;re logged in, but none of your current packages include a course that&apos;s live here yet —
+              get in touch if that doesn&apos;t look right.
+            </p>
+          </div>
+        ) : null}
+
         {courses.length > 0 ? (
           <div className="course-grid">
             {courses.map((course) => (

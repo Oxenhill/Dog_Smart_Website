@@ -169,17 +169,62 @@ export interface CourseSummary {
   summary?: string | null;
   coverImage?: SanityImageRef | null;
   price?: string | null;
+  entitlementKey?: string | null;
   moduleCount?: number;
   lessonCount?: number;
 }
+
+export interface CourseLessonVideoBlock {
+  _key: string;
+  _type: "videoBlock";
+  title?: string | null;
+  provider?: "cloudflare_stream" | "external_url" | null;
+  cloudflareVideoId?: string | null;
+  externalUrl?: string | null;
+  posterImage?: SanityImageRef | null;
+}
+
+export interface CourseLessonTextBlock {
+  _key: string;
+  _type: "textBlock";
+  content?: PortableTextBlock[] | null;
+}
+
+export interface CourseLessonPdfBlock {
+  _key: string;
+  _type: "pdfBlock";
+  title?: string | null;
+  fileUrl?: string | null;
+  fileName?: string | null;
+}
+
+export interface CourseLessonYoutubeBlock {
+  _key: string;
+  _type: "youtubeEmbedBlock";
+  title?: string | null;
+  url?: string | null;
+}
+
+export interface CourseLessonImageSlideBlock {
+  _key: string;
+  _type: "imageSlideBlock";
+  caption?: string | null;
+  image?: SanityImageRef | null;
+}
+
+export type CourseLessonContentBlock =
+  | CourseLessonVideoBlock
+  | CourseLessonTextBlock
+  | CourseLessonPdfBlock
+  | CourseLessonYoutubeBlock
+  | CourseLessonImageSlideBlock;
 
 export interface CourseLesson {
   _key: string;
   title: string;
   durationMinutes?: number | null;
   isFreePreview?: boolean;
-  videoUrl?: string | null;
-  body?: PortableTextBlock[] | null;
+  content?: CourseLessonContentBlock[] | null;
 }
 
 export interface CourseModule {

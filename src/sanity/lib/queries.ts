@@ -167,6 +167,7 @@ export const COURSES_QUERY = `*[_type == "course" && published == true] | order(
   summary,
   coverImage ${IMAGE_PROJECTION},
   price,
+  entitlementKey,
   "moduleCount": count(modules),
   "lessonCount": count(modules[].lessons[])
 }`;
@@ -177,6 +178,7 @@ export const COURSE_BY_SLUG_QUERY = `*[_type == "course" && slug.current == $slu
   "slug": slug.current,
   summary,
   coverImage ${IMAGE_PROJECTION},
+  entitlementKey,
   description[]{
     ...,
     _type == "image" => { "asset": asset->{url, metadata{dimensions}} }
@@ -191,10 +193,35 @@ export const COURSE_BY_SLUG_QUERY = `*[_type == "course" && slug.current == $slu
       title,
       durationMinutes,
       isFreePreview,
-      videoUrl,
-      body[]{
-        ...,
-        _type == "image" => { "asset": asset->{url, metadata{dimensions}} }
+      content[]{
+        _key,
+        _type,
+        _type == "videoBlock" => {
+          title,
+          provider,
+          cloudflareVideoId,
+          externalUrl,
+          posterImage ${IMAGE_PROJECTION}
+        },
+        _type == "textBlock" => {
+          content[]{
+            ...,
+            _type == "image" => { "asset": asset->{url, metadata{dimensions}} }
+          }
+        },
+        _type == "pdfBlock" => {
+          title,
+          "fileUrl": file.asset->url,
+          "fileName": file.asset->originalFilename
+        },
+        _type == "youtubeEmbedBlock" => {
+          title,
+          url
+        },
+        _type == "imageSlideBlock" => {
+          caption,
+          image ${IMAGE_PROJECTION}
+        }
       }
     }
   }

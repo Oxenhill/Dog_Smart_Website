@@ -3,35 +3,164 @@ import { defineField, defineType, defineArrayMember } from 'sanity'
 /**
  * Powers the built-in "Online Learning" area — replaces the Teachable
  * courses (Pup Smart, Life Skills, Behaviour Toolbox). Each course is made
- * of modules, and each module is made of lessons (video and/or text).
+ * of modules, and each module is made of lessons. A lesson's content is a
+ * mixed, ordered list of blocks (video / text / PDF / YouTube-style link /
+ * slide image) rather than a single video-plus-text field, since the real
+ * Teachable content mixes these freely within one lesson.
+ *
  * Access control (who has paid for what) is handled separately in the
- * application layer — this schema only holds the course CONTENT.
+ * application layer, driven by `entitlementKey` below — this schema only
+ * holds the course CONTENT.
  */
+
+const videoBlock = defineArrayMember({
+  type: 'object',
+  name: 'videoBlock',
+  title: 'Video',
+  fields: [
+    defineField({ name: 'title', title: 'Title (optional)', type: 'string' }),
+    defineField({
+      name: 'provider',
+      title: 'Video source',
+      type: 'string',
+      options: {
+        list: [
+          { title: 'Cloudflare Stream', value: 'cloudflare_stream' },
+          { title: 'External URL (e.g. a direct link during migration)', value: 'external_url' },
+        ],
+        layout: 'radio',
+      },
+      initialValue: 'cloudflare_stream',
+      validation: (Rule) => Rule.required(),
+    }),
+    defineField({
+      name: 'cloudflareVideoId',
+      title: 'Cloudflare Stream video ID',
+      type: 'string',
+      description: 'The video UID from the Cloudflare Stream dashboard, once uploaded there.',
+      hidden: ({ parent }) => parent?.provider !== 'cloudflare_stream',
+    }),
+    defineField({
+      name: 'externalUrl',
+      title: 'External video URL',
+      type: 'url',
+      description: 'A direct video URL to use temporarily during migration, before it has a Cloudflare Stream home.',
+      hidden: ({ parent }) => parent?.provider !== 'external_url',
+    }),
+    defineField({
+      name: 'posterImage',
+      title: 'Poster image (optional)',
+      type: 'image',
+      options: { hotspot: true },
+    }),
+  ],
+  preview: {
+    select: { title: 'title', subtitle: 'provider' },
+    prepare: ({ title, subtitle }) => ({ title: title || 'Video', subtitle }),
+  },
+})
+
+const textBlock = defineArrayMember({
+  type: 'object',
+  name: 'textBlock',
+  title: 'Text',
+  fields: [
+    defineField({
+      name: 'content',
+      title: 'Content',
+      type: 'array',
+      of: [{ type: 'block' }],
+    }),
+  ],
+  preview: {
+    select: { content: 'content' },
+    prepare({ content }) {
+      const firstText = content?.[0]?.children?.map((c) => c.text).join('') || 'Text block'
+      return { title: firstText.slice(0, 60) }
+    },
+  },
+})
+
+const pdfBlock = defineArrayMember({
+  type: 'object',
+  name: 'pdfBlock',
+  title: 'PDF download',
+  fields: [
+    defineField({ name: 'title', title: 'Title', type: 'string', validation: (Rule) => Rule.required() }),
+    defineField({
+      name: 'file',
+      title: 'PDF file',
+      type: 'file',
+      options: { accept: 'application/pdf' },
+      validation: (Rule) => Rule.required(),
+    }),
+  ],
+  preview: {
+    select: { title: 'title' },
+    prepare: ({ title }) => ({ title: title || 'PDF download' }),
+  },
+})
+
+const youtubeEmbedBlock = defineArrayMember({
+  type: 'object',
+  name: 'youtubeEmbedBlock',
+  title: 'YouTube / external video link',
+  fields: [
+    defineField({ name: 'title', title: 'Title (optional)', type: 'string' }),
+    defineField({
+      name: 'url',
+      title: 'Video URL',
+      type: 'url',
+      validation: (Rule) => Rule.required(),
+      description: "For linking to someone else's video (credit their material) — not for hosting your own course video, use the Video block for that.",
+    }),
+  ],
+  preview: {
+    select: { title: 'title', subtitle: 'url' },
+    prepare: ({ title, subtitle }) => ({ title: title || 'External video link', subtitle }),
+  },
+})
+
+const imageSlideBlock = defineArrayMember({
+  type: 'object',
+  name: 'imageSlideBlock',
+  title: 'Slide image',
+  fields: [
+    defineField({
+      name: 'image',
+      title: 'Image',
+      type: 'image',
+      options: { hotspot: true },
+      validation: (Rule) => Rule.required(),
+    }),
+    defineField({ name: 'caption', title: 'Caption (optional)', type: 'string' }),
+  ],
+  preview: {
+    select: { media: 'image', title: 'caption' },
+    prepare: ({ media, title }) => ({ title: title || 'Slide', media }),
+  },
+})
+
 const lesson = defineArrayMember({
   type: 'object',
   name: 'lesson',
   title: 'Lesson',
   fields: [
     defineField({ name: 'title', title: 'Lesson title', type: 'string', validation: (Rule) => Rule.required() }),
-    defineField({
-      name: 'videoUrl',
-      title: 'Video URL (optional)',
-      type: 'url',
-      description: 'A link to the hosted video for this lesson (e.g. Vimeo/YouTube unlisted link, or a Mux/Cloudflare Stream URL).',
-    }),
-    defineField({
-      name: 'body',
-      title: 'Written content',
-      type: 'array',
-      of: [{ type: 'block' }, { type: 'image', options: { hotspot: true } }],
-    }),
     defineField({ name: 'durationMinutes', title: 'Duration (minutes, optional)', type: 'number' }),
     defineField({
       name: 'isFreePreview',
       title: 'Free preview lesson?',
       type: 'boolean',
       initialValue: false,
-      description: 'Turn on to let anyone watch/read this lesson without buying the course — useful for a taster lesson.',
+      description: "Turn on to let anyone view this lesson's content without being logged in or entitled — useful for a taster lesson.",
+    }),
+    defineField({
+      name: 'content',
+      title: 'Lesson content',
+      type: 'array',
+      of: [videoBlock, textBlock, pdfBlock, youtubeEmbedBlock, imageSlideBlock],
+      description: 'Mix and match, in any order — a lesson can have a video, some text, a PDF handout and slide images all in the same lesson.',
     }),
   ],
   preview: {
@@ -63,7 +192,7 @@ export default defineType({
   name: 'course',
   title: 'Courses (Online Learning)',
   type: 'document',
-  description: 'Powers the "Online Learning" area — the paid video/text courses.',
+  description: 'Powers the "Online Learning" area — the video/text courses included with training packages.',
   fields: [
     defineField({ name: 'title', title: 'Title', type: 'string', validation: (Rule) => Rule.required() }),
     defineField({
@@ -71,6 +200,20 @@ export default defineType({
       title: 'Slug',
       type: 'slug',
       options: { source: 'title' },
+      validation: (Rule) => Rule.required(),
+    }),
+    defineField({
+      name: 'entitlementKey',
+      title: 'Entitlement key (links to the booking system)',
+      type: 'string',
+      options: {
+        list: [
+          { title: 'Pup Smart', value: 'pup_smart' },
+          { title: 'Life Skills', value: 'life_skills' },
+          { title: 'Behaviour Toolbox', value: 'behaviour_toolbox' },
+        ],
+      },
+      description: 'Which package/session-type entitlement flag in the booking system unlocks this course for a logged-in client. Must match exactly — this is how the site decides whether someone can see the real lesson content versus just the syllabus. (The gundog course lives on Briarrose Gundogs, not here, so it is not offered as an option on this site.)',
       validation: (Rule) => Rule.required(),
     }),
     defineField({ name: 'summary', title: 'Short summary (used in listings)', type: 'text', rows: 3 }),
@@ -88,7 +231,7 @@ export default defineType({
     }),
     defineField({
       name: 'price',
-      title: 'Price (e.g. "£49")',
+      title: 'Price (e.g. "£49") — optional, only relevant if a course is ever sold standalone',
       type: 'string',
     }),
     defineField({
@@ -102,13 +245,13 @@ export default defineType({
       title: 'Published — visible on the site?',
       type: 'boolean',
       initialValue: false,
-      description: 'Keep off while you\'re still building a course; switch on when it\'s ready for the public listing.',
+      description: "Keep off while you're still building a course; switch on when it's ready for the public listing.",
     }),
     defineField({ name: 'order', title: 'Display order', type: 'number', initialValue: 0 }),
   ],
   orderings: [{ title: 'Display order', name: 'orderAsc', by: [{ field: 'order', direction: 'asc' }] }],
   preview: {
-    select: { title: 'title', subtitle: 'price', media: 'coverImage', published: 'published' },
+    select: { title: 'title', subtitle: 'entitlementKey', media: 'coverImage', published: 'published' },
     prepare({ title, subtitle, media, published }) {
       return { title, subtitle: published === false ? `Draft — ${subtitle ?? ''}` : subtitle, media }
     },
