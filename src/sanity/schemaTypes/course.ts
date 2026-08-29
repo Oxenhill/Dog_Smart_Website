@@ -75,7 +75,7 @@ const textBlock = defineArrayMember({
   preview: {
     select: { content: 'content' },
     prepare({ content }) {
-      const firstText = content?.[0]?.children?.map((c) => c.text).join('') || 'Text block'
+      const firstText = content?.[0]?.children?.map((c: { text?: string }) => c.text).join('') || 'Text block'
       return { title: firstText.slice(0, 60) }
     },
   },
