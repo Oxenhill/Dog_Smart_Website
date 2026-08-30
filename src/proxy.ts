@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 
 /**
- * Gates Sanity Studio (/studio) and the Cloudflare Stream upload API
- * (/api/cloudflare-stream/*) behind a single shared username/password,
+ * Gates Sanity Studio (/studio), the Cloudflare Stream upload API
+ * (/api/cloudflare-stream/*), and the admin course preview
+ * (/online-learning/preview/*) behind a single shared username/password,
  * prompted by the browser's own native Basic Auth dialog.
  *
  * Sanity's own project login already stops a stranger from actually
@@ -10,7 +11,11 @@ import { NextRequest, NextResponse } from "next/server";
  * no auth of its own at all — without this, anyone who found the URL
  * could mint real Cloudflare Stream uploads on Oliver's account. Gating
  * /studio too means there's exactly one login prompt, not a surprise
- * second one the first time someone tries to upload a video.
+ * second one the first time someone tries to upload a video. The course
+ * preview route needs the same gate for a different reason: it renders
+ * full course content (including unpublished drafts) as if the visitor
+ * were a fully-entitled client, bypassing the real Base44 entitlement
+ * check entirely — that must never be reachable by an actual visitor.
  *
  * If STUDIO_BASIC_AUTH_USER/PASS aren't set (e.g. a preview deploy that
  * hasn't had them configured yet), this deliberately falls open rather
@@ -48,5 +53,5 @@ export function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/studio/:path*", "/api/cloudflare-stream/:path*"],
+  matcher: ["/studio/:path*", "/api/cloudflare-stream/:path*", "/online-learning/preview/:path*"],
 };

@@ -86,7 +86,7 @@ const textBlock = defineArrayMember({
 const pdfBlock = defineArrayMember({
   type: 'object',
   name: 'pdfBlock',
-  title: 'PDF download',
+  title: 'PDF',
   fields: [
     defineField({ name: 'title', title: 'Title', type: 'string', validation: (Rule) => Rule.required() }),
     defineField({
@@ -96,10 +96,18 @@ const pdfBlock = defineArrayMember({
       options: { accept: 'application/pdf' },
       validation: (Rule) => Rule.required(),
     }),
+    defineField({
+      name: 'preventDownload',
+      title: 'Hide the download link (view-only)',
+      type: 'boolean',
+      initialValue: false,
+      description:
+        "The PDF always shows inline in the lesson so clients can read it without leaving the page. Turn this on to also hide the separate download button for handouts you don't want people saving a copy of. Worth knowing: this only removes the obvious one-click download — a determined visitor could still save it via their own browser's PDF viewer or dev tools, so treat it as a nudge, not a lock.",
+    }),
   ],
   preview: {
-    select: { title: 'title' },
-    prepare: ({ title }) => ({ title: title || 'PDF download' }),
+    select: { title: 'title', subtitle: 'preventDownload' },
+    prepare: ({ title, subtitle }) => ({ title: title || 'PDF', subtitle: subtitle ? 'View-only' : 'Downloadable' }),
   },
 })
 

@@ -49,11 +49,23 @@ export default function LessonContent({ blocks }: { blocks?: CourseLessonContent
         }
 
         if (block._type === "pdfBlock") {
-          return block.fileUrl ? (
-            <a key={key} href={block.fileUrl} target="_blank" rel="noreferrer" className="pill" style={{ alignSelf: "flex-start" }}>
-              Download: {block.title}
-            </a>
-          ) : null;
+          if (!block.fileUrl) return null;
+          return (
+            <div key={key} style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
+              <div style={{ position: "relative", paddingTop: "129%", borderRadius: "var(--radius-lg)", overflow: "hidden", border: "1px solid var(--line, #e5e5e5)" }}>
+                <iframe
+                  src={`${block.fileUrl}${block.preventDownload ? "#toolbar=0" : ""}`}
+                  style={{ position: "absolute", inset: 0, width: "100%", height: "100%", border: 0 }}
+                  title={block.title || "PDF"}
+                />
+              </div>
+              {block.preventDownload ? null : (
+                <a href={block.fileUrl} target="_blank" rel="noreferrer" className="pill" style={{ alignSelf: "flex-start" }}>
+                  Download: {block.title}
+                </a>
+              )}
+            </div>
+          );
         }
 
         if (block._type === "youtubeEmbedBlock") {

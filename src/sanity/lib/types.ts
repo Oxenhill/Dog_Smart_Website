@@ -170,6 +170,7 @@ export interface CourseSummary {
   coverImage?: SanityImageRef | null;
   price?: string | null;
   entitlementKey?: string | null;
+  published?: boolean | null;
   moduleCount?: number;
   lessonCount?: number;
 }
@@ -196,6 +197,7 @@ export interface CourseLessonPdfBlock {
   title?: string | null;
   fileUrl?: string | null;
   fileName?: string | null;
+  preventDownload?: boolean | null;
 }
 
 export interface CourseLessonYoutubeBlock {

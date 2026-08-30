@@ -172,6 +172,23 @@ export const COURSES_QUERY = `*[_type == "course" && published == true] | order(
   "lessonCount": count(modules[].lessons[])
 }`;
 
+// Preview-only variant for /online-learning/preview (Basic-Auth-gated admin
+// route, see that page) — same shape, minus the `published == true` filter
+// and with `published` itself included, so a course still being built in
+// Studio shows up here before it's ready for real clients.
+export const COURSES_QUERY_PREVIEW = `*[_type == "course"] | order(order asc){
+  _id,
+  title,
+  "slug": slug.current,
+  summary,
+  coverImage ${IMAGE_PROJECTION},
+  price,
+  entitlementKey,
+  published,
+  "moduleCount": count(modules),
+  "lessonCount": count(modules[].lessons[])
+}`;
+
 export const COURSE_BY_SLUG_QUERY = `*[_type == "course" && slug.current == $slug && published == true][0]{
   _id,
   title,
@@ -212,7 +229,68 @@ export const COURSE_BY_SLUG_QUERY = `*[_type == "course" && slug.current == $slu
         _type == "pdfBlock" => {
           title,
           "fileUrl": file.asset->url,
-          "fileName": file.asset->originalFilename
+          "fileName": file.asset->originalFilename,
+          preventDownload
+        },
+        _type == "youtubeEmbedBlock" => {
+          title,
+          url
+        },
+        _type == "imageSlideBlock" => {
+          caption,
+          image ${IMAGE_PROJECTION}
+        }
+      }
+    }
+  }
+}`;
+
+// Preview-only variant (see COURSES_QUERY_PREVIEW above) — identical
+// projection, minus the `published == true` filter, plus `published`
+// itself so the preview page can flag a draft.
+export const COURSE_BY_SLUG_QUERY_PREVIEW = `*[_type == "course" && slug.current == $slug][0]{
+  _id,
+  title,
+  "slug": slug.current,
+  summary,
+  coverImage ${IMAGE_PROJECTION},
+  entitlementKey,
+  published,
+  description[]{
+    ...,
+    _type == "image" => { "asset": asset->{url, metadata{dimensions}} }
+  },
+  price,
+  modules[]{
+    _key,
+    title,
+    summary,
+    lessons[]{
+      _key,
+      title,
+      durationMinutes,
+      isFreePreview,
+      content[]{
+        _key,
+        _type,
+        _type == "videoBlock" => {
+          title,
+          provider,
+          cloudflareVideoId,
+          externalUrl,
+          posterImage ${IMAGE_PROJECTION}
+        },
+        _type == "textBlock" => {
+          content[]{
+            ...,
+            _type == "image" => { "asset": asset->{url, metadata{dimensions}} }
+          }
+        },
+        _type == "pdfBlock" => {
+          title,
+          "fileUrl": file.asset->url,
+          "fileName": file.asset->originalFilename,
+          preventDownload
         },
         _type == "youtubeEmbedBlock" => {
           title,
