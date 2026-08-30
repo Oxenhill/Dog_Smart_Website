@@ -21,6 +21,16 @@ export const metadata = {
   robots: { index: false, follow: false },
 };
 
+// This route always fetches with `revalidate: 0` (see sanityFetch's
+// options param) because it's an admin-only page that must never show
+// stale content. Next's static analysis at build time can't see that — it
+// prerenders the route as static, then throws "Page changed from static
+// to dynamic at runtime" the moment a live request hits the revalidate:0
+// fetch. Forcing the whole route dynamic here (never attempted to
+// prerender in the first place) keeps the runtime behaviour consistent
+// with the build-time one.
+export const dynamic = "force-dynamic";
+
 export default async function OnlineLearningPreviewIndex() {
   const courses = await sanityFetch<CourseSummary[]>(COURSES_QUERY_PREVIEW, {}, [], { revalidate: 0 });
 
