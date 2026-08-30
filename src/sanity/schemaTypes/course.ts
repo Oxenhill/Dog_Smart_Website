@@ -170,13 +170,16 @@ const lesson = defineArrayMember({
       title: 'Lesson content',
       type: 'array',
       of: [videoBlock, textBlock, pdfBlock, youtubeEmbedBlock, imageSlideBlock],
-      description: 'Mix and match, in any order — a lesson can have a video, some text, a PDF handout and slide images all in the same lesson.',
+      description: 'Mix and match, in any order — a lesson can have a video, some text, a PDF handout and slide images all in the same lesson. Click "Add item" as many times as you need; each one can be a different type.',
+      options: { modal: { type: 'dialog', width: 3 } },
     }),
   ],
   preview: {
-    select: { title: 'title', subtitle: 'durationMinutes' },
-    prepare({ title, subtitle }) {
-      return { title, subtitle: subtitle ? `${subtitle} min` : undefined }
+    select: { title: 'title', subtitle: 'durationMinutes', content: 'content' },
+    prepare({ title, subtitle, content }) {
+      const blockCount = (content ?? []).length
+      const parts = [subtitle ? `${subtitle} min` : null, blockCount ? `${blockCount} item${blockCount === 1 ? '' : 's'}` : 'empty'].filter(Boolean)
+      return { title, subtitle: parts.join(' · ') }
     },
   },
 })
@@ -188,7 +191,13 @@ const module_ = defineArrayMember({
   fields: [
     defineField({ name: 'title', title: 'Module title', type: 'string', validation: (Rule) => Rule.required() }),
     defineField({ name: 'summary', title: 'Module summary (optional)', type: 'text', rows: 2 }),
-    defineField({ name: 'lessons', title: 'Lessons', type: 'array', of: [lesson] }),
+    defineField({
+      name: 'lessons',
+      title: 'Lessons',
+      type: 'array',
+      of: [lesson],
+      options: { modal: { type: 'dialog', width: 4 } },
+    }),
   ],
   preview: {
     select: { title: 'title', lessons: 'lessons' },
@@ -249,6 +258,8 @@ export default defineType({
       title: 'Modules',
       type: 'array',
       of: [module_],
+      description: 'Drag the handle on the left of a row to reorder. Click a row to open it — modules and lessons each open in their own full window instead of expanding in place, so building a big course doesn\'t mean scrolling through nested sections within sections.',
+      options: { modal: { type: 'dialog', width: 5 } },
     }),
     defineField({
       name: 'published',

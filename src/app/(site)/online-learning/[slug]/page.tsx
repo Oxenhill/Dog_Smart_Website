@@ -5,6 +5,8 @@ import { COURSE_BY_SLUG_QUERY } from "@/sanity/lib/queries";
 import type { CourseDetail } from "@/sanity/lib/types";
 import PortableTextBody from "@/components/site/PortableTextBody";
 import LessonContent from "@/components/site/LessonContent";
+import CourseNav from "@/components/site/CourseNav";
+import LessonProgressControls from "@/components/site/LessonProgressControls";
 import { getSessionClientId, getEntitledCourses, BASE44_PORTAL_URL } from "@/lib/courseAccess";
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
@@ -27,8 +29,19 @@ export default async function CourseDetailPage({ params }: { params: Promise<{ s
   const entitledKeys = clientId ? await getEntitledCourses(clientId) : [];
   const isEntitled = !!course.entitlementKey && entitledKeys.includes(course.entitlementKey);
 
+  const navModules = (course.modules || []).map((mod) => ({
+    key: mod._key,
+    title: mod.title,
+    lessons: (mod.lessons || []).map((lesson) => ({
+      key: lesson._key,
+      title: lesson.title,
+      locked: !(lesson.isFreePreview || isEntitled),
+    })),
+  }));
+
   return (
     <>
+      <CourseNav courseSlug={slug} modules={navModules} />
       <section className="page-header">
         <div className="container-narrow">
           <p className="eyebrow">Online Learning</p>
@@ -55,7 +68,7 @@ export default async function CourseDetailPage({ params }: { params: Promise<{ s
                 <div className="faq-category">
                   <h2>Course content</h2>
                   {course.modules.map((mod) => (
-                    <details className="disclosure" key={mod._key} open={isEntitled}>
+                    <details className="disclosure" key={mod._key} id={`module-${mod._key}`} open={isEntitled} style={{ scrollMarginTop: "1.25rem" }}>
                       <summary>
                         {mod.title}
                         {mod.lessons ? ` (${mod.lessons.length} lesson${mod.lessons.length === 1 ? "" : "s"})` : ""}
@@ -65,14 +78,17 @@ export default async function CourseDetailPage({ params }: { params: Promise<{ s
                         {(mod.lessons || []).map((lesson) => {
                           const unlocked = !!lesson.isFreePreview || isEntitled;
                           return (
-                            <div key={lesson._key} style={{ marginBlockEnd: "1.5rem" }}>
+                            <div key={lesson._key} id={`lesson-${lesson._key}`} style={{ marginBlockEnd: "1.5rem", scrollMarginTop: "1.25rem" }}>
                               <p style={{ fontWeight: 600, marginBlockEnd: unlocked ? "0.5rem" : 0 }}>
                                 {lesson.title}
                                 {lesson.durationMinutes ? ` — ${lesson.durationMinutes} min` : ""}
                                 {lesson.isFreePreview ? " (free preview)" : ""}
                               </p>
                               {unlocked ? (
-                                <LessonContent blocks={lesson.content} />
+                                <>
+                                  <LessonContent blocks={lesson.content} />
+                                  <LessonProgressControls courseSlug={slug} lessonKey={lesson._key} />
+                                </>
                               ) : (
                                 <p className="text-xs" style={{ opacity: 0.7 }}>
                                   {clientId

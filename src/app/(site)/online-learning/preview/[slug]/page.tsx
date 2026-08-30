@@ -5,6 +5,8 @@ import { COURSE_BY_SLUG_QUERY_PREVIEW } from "@/sanity/lib/queries";
 import type { CourseDetail } from "@/sanity/lib/types";
 import PortableTextBody from "@/components/site/PortableTextBody";
 import LessonContent from "@/components/site/LessonContent";
+import CourseNav from "@/components/site/CourseNav";
+import LessonProgressControls from "@/components/site/LessonProgressControls";
 
 /**
  * Admin-only mirror of ../[slug]/page.tsx: renders a course exactly as a
@@ -28,8 +30,15 @@ export default async function CoursePreviewPage({ params }: { params: Promise<{ 
   const course = await sanityFetch<CourseDetail | null>(COURSE_BY_SLUG_QUERY_PREVIEW, { slug }, null);
   if (!course) notFound();
 
+  const navModules = (course.modules || []).map((mod) => ({
+    key: mod._key,
+    title: mod.title,
+    lessons: (mod.lessons || []).map((lesson) => ({ key: lesson._key, title: lesson.title, locked: false })),
+  }));
+
   return (
     <>
+      <CourseNav courseSlug={`preview-${slug}`} modules={navModules} />
       <div style={{ background: "#111", color: "#fff", padding: "0.6rem 1.5rem", textAlign: "center", fontSize: "0.875rem" }}>
         Preview mode — this is what a fully-entitled client sees. Not a public page.
         {course.published === false ? " This course is still a draft." : ""}
@@ -61,7 +70,7 @@ export default async function CoursePreviewPage({ params }: { params: Promise<{ 
                 <div className="faq-category">
                   <h2>Course content</h2>
                   {course.modules.map((mod) => (
-                    <details className="disclosure" key={mod._key} open>
+                    <details className="disclosure" key={mod._key} id={`module-${mod._key}`} open style={{ scrollMarginTop: "1.25rem" }}>
                       <summary>
                         {mod.title}
                         {mod.lessons ? ` (${mod.lessons.length} lesson${mod.lessons.length === 1 ? "" : "s"})` : ""}
@@ -69,13 +78,14 @@ export default async function CoursePreviewPage({ params }: { params: Promise<{ 
                       <div className="answer">
                         {mod.summary ? <p>{mod.summary}</p> : null}
                         {(mod.lessons || []).map((lesson) => (
-                          <div key={lesson._key} style={{ marginBlockEnd: "1.5rem" }}>
+                          <div key={lesson._key} id={`lesson-${lesson._key}`} style={{ marginBlockEnd: "1.5rem", scrollMarginTop: "1.25rem" }}>
                             <p style={{ fontWeight: 600, marginBlockEnd: "0.5rem" }}>
                               {lesson.title}
                               {lesson.durationMinutes ? ` — ${lesson.durationMinutes} min` : ""}
                               {lesson.isFreePreview ? " (free preview)" : ""}
                             </p>
                             <LessonContent blocks={lesson.content} />
+                            <LessonProgressControls courseSlug={`preview-${slug}`} lessonKey={lesson._key} />
                           </div>
                         ))}
                       </div>
