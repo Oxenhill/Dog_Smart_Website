@@ -22,7 +22,7 @@ export const metadata = {
 };
 
 export default async function OnlineLearningPreviewIndex() {
-  const courses = await sanityFetch<CourseSummary[]>(COURSES_QUERY_PREVIEW, {}, []);
+  const courses = await sanityFetch<CourseSummary[]>(COURSES_QUERY_PREVIEW, {}, [], { revalidate: 0 });
 
   return (
     <>

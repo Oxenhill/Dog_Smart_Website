@@ -20,14 +20,14 @@ import LessonProgressControls from "@/components/site/LessonProgressControls";
  */
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
-  const course = await sanityFetch<CourseDetail | null>(COURSE_BY_SLUG_QUERY_PREVIEW, { slug }, null);
+  const course = await sanityFetch<CourseDetail | null>(COURSE_BY_SLUG_QUERY_PREVIEW, { slug }, null, { revalidate: 0 });
   if (!course) return {};
   return { title: `Preview: ${course.title}`, robots: { index: false, follow: false } };
 }
 
 export default async function CoursePreviewPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
-  const course = await sanityFetch<CourseDetail | null>(COURSE_BY_SLUG_QUERY_PREVIEW, { slug }, null);
+  const course = await sanityFetch<CourseDetail | null>(COURSE_BY_SLUG_QUERY_PREVIEW, { slug }, null, { revalidate: 0 });
   if (!course) notFound();
 
   const navModules = (course.modules || []).map((mod) => ({

@@ -1,7 +1,7 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useRef } from 'react'
 import { Button, Card, Flex, Stack, Text, Box } from '@sanity/ui'
 import { set, unset, type StringInputProps } from 'sanity'
-import * as tus from 'tus-js-client'
+import { useCloudflareStreamUpload } from '../lib/useCloudflareStreamUpload'
 
 /**
  * Replaces the plain "paste the video ID" text field on a video block's
@@ -12,100 +12,25 @@ import * as tus from 'tus-js-client'
  * No more manually uploading in the Cloudflare dashboard and copying a UID
  * across by hand.
  *
- * The actual Cloudflare API token never reaches the browser: this only
- * ever talks to our own /api/cloudflare-stream/* routes, which are the
- * ones holding the real credentials (see those route files, and
- * proxy.ts for how they're gated).
+ * The upload flow itself lives in ../lib/useCloudflareStreamUpload.ts,
+ * shared with the Course Builder tool's own video block editor — this
+ * component is just that hook wired up to Sanity's native form field
+ * `onChange`/`PatchEvent` API instead of a direct patch call.
  */
-
-type UploadState = 'idle' | 'requesting' | 'uploading' | 'processing' | 'ready' | 'error'
 
 export function CloudflareStreamUploadInput(props: StringInputProps) {
   const { value, onChange, readOnly } = props
-  const [state, setState] = useState<UploadState>('idle')
-  const [progress, setProgress] = useState(0)
-  const [errorMessage, setErrorMessage] = useState<string | null>(null)
   const inputRef = useRef<HTMLInputElement>(null)
-  const pollRef = useRef<ReturnType<typeof setInterval> | null>(null)
 
-  useEffect(() => {
-    return () => {
-      if (pollRef.current) clearInterval(pollRef.current)
-    }
-  }, [])
+  const { state, progress, errorMessage, handleFile } = useCloudflareStreamUpload((uid) => {
+    onChange(set(uid))
+  })
 
-  const pollUntilReady = useCallback((uid: string) => {
-    if (pollRef.current) clearInterval(pollRef.current)
-    pollRef.current = setInterval(async () => {
-      try {
-        const res = await fetch(`/api/cloudflare-stream/status?uid=${encodeURIComponent(uid)}`)
-        if (!res.ok) return
-        const data = await res.json()
-        if (data.readyToStream) {
-          setState('ready')
-          if (pollRef.current) clearInterval(pollRef.current)
-        }
-      } catch {
-        // Transient — the next tick will try again. Not worth surfacing
-        // as an error, the upload itself already succeeded.
-      }
-    }, 4000)
-  }, [])
-
-  const handleFile = useCallback(
-    async (file: File) => {
-      setErrorMessage(null)
-      setProgress(0)
-      setState('requesting')
-
-      try {
-        const res = await fetch('/api/cloudflare-stream/direct-upload', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ filename: file.name, fileSize: file.size }),
-        })
-        if (!res.ok) {
-          const body = await res.json().catch(() => ({}))
-          throw new Error(body.error || `Could not start the upload (${res.status})`)
-        }
-        const { uploadURL, uid } = (await res.json()) as { uploadURL: string; uid: string }
-
-        setState('uploading')
-
-        await new Promise<void>((resolve, reject) => {
-          const upload = new tus.Upload(file, {
-            uploadUrl: uploadURL,
-            chunkSize: 50 * 1024 * 1024,
-            retryDelays: [0, 3000, 5000, 10000, 20000],
-            metadata: { filename: file.name, filetype: file.type },
-            onError: (err) => reject(err),
-            onProgress: (bytesSent, bytesTotal) => {
-              setProgress(Math.round((bytesSent / bytesTotal) * 100))
-            },
-            onSuccess: () => resolve(),
-          })
-          upload.start()
-        })
-
-        onChange(set(uid))
-        setState('processing')
-        pollUntilReady(uid)
-      } catch (err) {
-        setErrorMessage(err instanceof Error ? err.message : 'Upload failed')
-        setState('error')
-      }
-    },
-    [onChange, pollUntilReady]
-  )
-
-  const onFileSelected = useCallback(
-    (e: React.ChangeEvent<HTMLInputElement>) => {
-      const file = e.target.files?.[0]
-      if (file) handleFile(file)
-      e.target.value = ''
-    },
-    [handleFile]
-  )
+  const onFileSelected = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (file) handleFile(file)
+    e.target.value = ''
+  }
 
   const busy = state === 'requesting' || state === 'uploading'
 
