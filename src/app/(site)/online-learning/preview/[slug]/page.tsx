@@ -38,7 +38,6 @@ export default async function CoursePreviewPage({ params }: { params: Promise<{ 
 
   return (
     <>
-      <CourseNav courseSlug={`preview-${slug}`} modules={navModules} />
       <div style={{ background: "#111", color: "#fff", padding: "0.6rem 1.5rem", textAlign: "center", fontSize: "0.875rem" }}>
         Preview mode — this is what a fully-entitled client sees. Not a public page.
         {course.published === false ? " This course is still a draft." : ""}
@@ -77,9 +76,10 @@ export default async function CoursePreviewPage({ params }: { params: Promise<{ 
                       </summary>
                       <div className="answer">
                         {mod.summary ? <p>{mod.summary}</p> : null}
-                        {(mod.lessons || []).map((lesson) => (
-                          <div key={lesson._key} id={`lesson-${lesson._key}`} style={{ marginBlockEnd: "1.5rem", scrollMarginTop: "1.25rem" }}>
-                            <p style={{ fontWeight: 600, marginBlockEnd: "0.5rem" }}>
+                        {(mod.lessons || []).map((lesson, lessonIndex) => (
+                          <div key={lesson._key} id={`lesson-${lesson._key}`} className="lesson-block" style={{ scrollMarginTop: "1.25rem" }}>
+                            <p className="lesson-heading">
+                              <span className="lesson-number">Lesson {lessonIndex + 1}</span>
                               {lesson.title}
                               {lesson.durationMinutes ? ` — ${lesson.durationMinutes} min` : ""}
                               {lesson.isFreePreview ? " (free preview)" : ""}
@@ -103,6 +103,10 @@ export default async function CoursePreviewPage({ params }: { params: Promise<{ 
               visitor sees instead.)
             </p>
           </div>
+
+          <aside className="service-sidebar">
+            <CourseNav courseSlug={`preview-${slug}`} modules={navModules} />
+          </aside>
         </div>
       </div>
     </>

@@ -1561,60 +1561,11 @@
     margin-block-end: 8px;
   }
 
-  /* Course navigation — floating menu on the online-learning course page.
-     Fixed rather than a sidebar column so it works the same whether a
-     client is scrolling a long course page on a laptop or, more likely,
-     checking a lesson off on their phone mid-training-session. */
-  .course-nav-backdrop {
-    position: fixed;
-    inset: 0;
-    z-index: 440;
-    background: rgba(36, 31, 28, 0.35);
-    border: none;
-    cursor: default;
-    padding: 0;
-  }
-  .course-nav {
-    position: fixed;
-    right: 20px;
-    bottom: 20px;
-    z-index: 450;
-  }
-  .course-nav-toggle {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    border: none;
-    background: var(--brand-700);
-    color: var(--on-brand);
-    padding: 13px 22px;
-    border-radius: var(--radius-md);
-    font-family: var(--font-ui);
-    font-size: 0.85rem;
-    font-weight: 600;
-    cursor: pointer;
-    box-shadow: var(--shadow-lg);
-  }
-  .course-nav-toggle:hover {
-    background: var(--brand-800);
-  }
-  .course-nav-toggle-count {
-    font-weight: 400;
-    opacity: 0.85;
-  }
-  .course-nav-panel {
-    position: absolute;
-    right: 0;
-    bottom: calc(100% + 12px);
-    width: min(340px, calc(100vw - 40px));
-    max-height: min(70vh, 560px);
-    overflow-y: auto;
-    background: var(--paper);
-    border: 1px solid var(--line);
-    border-radius: var(--radius-lg);
-    box-shadow: var(--shadow-lg);
-    padding: 20px;
-  }
+  /* Course navigation — a real sidebar card (renders inside the existing
+     .service-sidebar next to the booking CTA), not a button a client has
+     to find and click. Sticky on desktop via .service-sidebar's own CSS;
+     drops into normal flow on mobile the same way that sidebar already
+     does, so it's always visible either way. */
   .course-nav-progress-bar {
     height: 6px;
     border-radius: 3px;
@@ -1694,14 +1645,29 @@
     text-decoration: none;
   }
 
-  @media (max-width: 520px) {
-    .course-nav {
-      right: 12px;
-      bottom: 12px;
-    }
-    .course-nav-panel {
-      width: calc(100vw - 24px);
-    }
+  .lesson-block {
+    padding-top: 24px;
+    margin-top: 24px;
+    border-top: 1px solid var(--line);
+  }
+  .lesson-block:first-child {
+    margin-top: 0;
+    padding-top: 0;
+    border-top: none;
+  }
+  .lesson-heading {
+    font-family: var(--font-display);
+    font-size: 1.15rem;
+    margin-bottom: 12px;
+  }
+  .lesson-heading .lesson-number {
+    color: var(--ink-soft);
+    font-size: 0.8rem;
+    font-family: var(--font-ui);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    display: block;
+    margin-bottom: 4px;
   }
 
 }

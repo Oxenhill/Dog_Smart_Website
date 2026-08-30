@@ -41,7 +41,6 @@ export default async function CourseDetailPage({ params }: { params: Promise<{ s
 
   return (
     <>
-      <CourseNav courseSlug={slug} modules={navModules} />
       <section className="page-header">
         <div className="container-narrow">
           <p className="eyebrow">Online Learning</p>
@@ -75,11 +74,12 @@ export default async function CourseDetailPage({ params }: { params: Promise<{ s
                       </summary>
                       <div className="answer">
                         {mod.summary ? <p>{mod.summary}</p> : null}
-                        {(mod.lessons || []).map((lesson) => {
+                        {(mod.lessons || []).map((lesson, lessonIndex) => {
                           const unlocked = !!lesson.isFreePreview || isEntitled;
                           return (
-                            <div key={lesson._key} id={`lesson-${lesson._key}`} style={{ marginBlockEnd: "1.5rem", scrollMarginTop: "1.25rem" }}>
-                              <p style={{ fontWeight: 600, marginBlockEnd: unlocked ? "0.5rem" : 0 }}>
+                            <div key={lesson._key} id={`lesson-${lesson._key}`} className="lesson-block" style={{ scrollMarginTop: "1.25rem" }}>
+                              <p className="lesson-heading">
+                                <span className="lesson-number">Lesson {lessonIndex + 1}</span>
                                 {lesson.title}
                                 {lesson.durationMinutes ? ` — ${lesson.durationMinutes} min` : ""}
                                 {lesson.isFreePreview ? " (free preview)" : ""}
@@ -108,6 +108,7 @@ export default async function CourseDetailPage({ params }: { params: Promise<{ s
           </div>
 
           <aside className="service-sidebar">
+            <CourseNav courseSlug={slug} modules={navModules} />
             <div className="sidebar-card">
               {isEntitled ? (
                 <>
