@@ -215,7 +215,7 @@ export default defineType({
           { title: 'Behaviour Toolbox', value: 'behaviour_toolbox' },
         ],
       },
-      description: 'Which package/session-type entitlement flag in the booking system unlocks this course for a logged-in client. Must match exactly — this is how the site decides whether someone can see the real lesson content versus just the syllabus. (The gundog course lives on Briarrose Gundogs, not here, so it is not offered as an option on this site.)',
+      description: 'Which entitlement flag in the booking system unlocks this course. This is not tied to any single package — in the booking system, turn on the matching "includes access to the [this course] on the new online learning platform" toggle on every package and session type that should unlock it (Settings → Packages/Session Types), and all of them will grant access. Must match exactly — this is how the site decides whether someone can see the real lesson content versus just the syllabus. (The gundog course lives on Briarrose Gundogs, not here, so it is not offered as an option on this site.)',
       validation: (Rule) => Rule.required(),
     }),
     defineField({ name: 'summary', title: 'Short summary (used in listings)', type: 'text', rows: 3 }),
