@@ -5,6 +5,8 @@ import { schema } from './src/sanity/schemaTypes'
 import { structure } from './src/sanity/structure'
 import { apiVersion, dataset, projectId } from './src/sanity/env'
 import { PublishToggleAction } from './src/sanity/components/PublishToggleAction'
+import { CourseBuilderTool } from './src/sanity/courseBuilder/CourseBuilderTool'
+import { BookIcon } from './src/sanity/courseBuilder/icons'
 
 export default defineConfig({
   basePath: '/studio',
@@ -19,4 +21,13 @@ export default defineConfig({
     actions: (prev, context) =>
       context.schemaType === 'course' ? [PublishToggleAction, ...prev] : prev,
   },
+  tools: (prev) => [
+    ...prev,
+    {
+      name: 'course-builder',
+      title: 'Course Builder',
+      icon: BookIcon,
+      component: CourseBuilderTool,
+    },
+  ],
 })
