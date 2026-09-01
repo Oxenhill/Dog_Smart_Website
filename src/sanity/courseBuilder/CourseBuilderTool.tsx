@@ -14,6 +14,41 @@ import type { BuilderContentBlockType, BuilderLesson, BuilderModule, CourseListI
 
 type Selection = { moduleKey: string; lessonKey: string | null } | null
 
+const DRAFT_ID_PREFIX = "drafts."
+
+/**
+ * Sanity stores a document'''s unpublished edits as a second document sharing
+ * the same canonical id, prefixed `drafts.`. `COURSE_LIST_QUERY` fetches
+ * every course document with no draft/published filtering, so a course
+ * that'''s mid-edit (a published copy plus a newer draft on top of it) comes
+ * back as two separate rows with the same title — which is exactly what
+ * looked like a duplicate course in the picker. This merges each such pair
+ * back into the one course it actually is, before it ever reaches state:
+ * edit the draft when one exists (it'''s the in-progress copy), and report
+ * "live on the site" from the published copy'''s own field only — a draft'''s
+ * unsaved toggle doesn'''t mean anything to visitors until it'''s published.
+ */
+function dedupeCourseList(items: CourseListItem[]): CourseListItem[] {
+  const byCanonicalId = new Map<string, { draft?: CourseListItem; published?: CourseListItem }>()
+  for (const item of items) {
+    const isDraft = item._id.startsWith(DRAFT_ID_PREFIX)
+    const canonicalId = isDraft ? item._id.slice(DRAFT_ID_PREFIX.length) : item._id
+    const entry = byCanonicalId.get(canonicalId) ?? {}
+    if (isDraft) entry.draft = item
+    else entry.published = item
+    byCanonicalId.set(canonicalId, entry)
+  }
+  return Array.from(byCanonicalId.values()).map(({ draft, published }) => {
+    const preferred = draft ?? published!
+    return {
+      _id: preferred._id,
+      title: preferred.title,
+      slug: preferred.slug,
+      published: published?.published === true,
+    }
+  })
+}
+
 /**
  * The Course Builder tool: pick a course, then build it — drag-and-drop
  * structure, inline field editing, full content-block editing, and a live
@@ -42,8 +77,9 @@ export function CourseBuilderTool() {
     let cancelled = false
     client.fetch<CourseListItem[]>(COURSE_LIST_QUERY).then((list) => {
       if (cancelled) return
-      setCourses(list)
-      if (list.length === 1) setCourseId(list[0]._id)
+      const deduped = dedupeCourseList(list)
+      setCourses(deduped)
+      if (deduped.length === 1) setCourseId(deduped[0]._id)
     })
     return () => {
       cancelled = true
