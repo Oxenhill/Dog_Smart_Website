@@ -266,7 +266,8 @@ export default defineType({
       title: 'Published — visible on the site?',
       type: 'boolean',
       initialValue: false,
-      description: "Keep off while you're still building a course; switch on when it's ready for the public listing.",
+      description:
+        "Keep off while you're still building a course; switch on when it's ready for the public listing. Easiest way to change this: use the \"Publish live\" / \"Take offline\" button at the top of this document, next to Studio's own Publish button — it flips this and saves it in one click, rather than ticking this box and then remembering to also hit Publish.",
     }),
     defineField({ name: 'order', title: 'Display order', type: 'number', initialValue: 0 }),
   ],
@@ -274,7 +275,7 @@ export default defineType({
   preview: {
     select: { title: 'title', subtitle: 'entitlementKey', media: 'coverImage', published: 'published' },
     prepare({ title, subtitle, media, published }) {
-      return { title, subtitle: published === false ? `Draft — ${subtitle ?? ''}` : subtitle, media }
+      return { title, subtitle: published === true ? `● Live — ${subtitle ?? ''}` : `○ Not live yet — ${subtitle ?? ''}`, media }
     },
   },
 })

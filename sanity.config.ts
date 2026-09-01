@@ -4,8 +4,7 @@ import { visionTool } from '@sanity/vision'
 import { schema } from './src/sanity/schemaTypes'
 import { structure } from './src/sanity/structure'
 import { apiVersion, dataset, projectId } from './src/sanity/env'
-import { CourseBuilderTool } from './src/sanity/courseBuilder/CourseBuilderTool'
-import { BookIcon } from './src/sanity/courseBuilder/icons'
+import { PublishToggleAction } from './src/sanity/components/PublishToggleAction'
 
 export default defineConfig({
   basePath: '/studio',
@@ -13,13 +12,11 @@ export default defineConfig({
   dataset,
   schema,
   plugins: [structureTool({ structure }), visionTool({ defaultApiVersion: apiVersion })],
-  tools: (prev) => [
-    ...prev,
-    {
-      name: 'course-builder',
-      title: 'Course Builder',
-      icon: BookIcon,
-      component: CourseBuilderTool,
-    },
-  ],
+  document: {
+    // Adds a one-click "Publish live" / "Take offline" button to courses,
+    // ahead of Studio's own default actions — see PublishToggleAction.tsx
+    // for why a course needs more than just the schema's published field.
+    actions: (prev, context) =>
+      context.schemaType === 'course' ? [PublishToggleAction, ...prev] : prev,
+  },
 })
