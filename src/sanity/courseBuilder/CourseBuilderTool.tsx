@@ -17,16 +17,16 @@ type Selection = { moduleKey: string; lessonKey: string | null } | null
 const DRAFT_ID_PREFIX = "drafts."
 
 /**
- * Sanity stores a document'''s unpublished edits as a second document sharing
+ * Sanity stores a document's unpublished edits as a second document sharing
  * the same canonical id, prefixed `drafts.`. `COURSE_LIST_QUERY` fetches
  * every course document with no draft/published filtering, so a course
- * that'''s mid-edit (a published copy plus a newer draft on top of it) comes
+ * that's mid-edit (a published copy plus a newer draft on top of it) comes
  * back as two separate rows with the same title — which is exactly what
  * looked like a duplicate course in the picker. This merges each such pair
  * back into the one course it actually is, before it ever reaches state:
- * edit the draft when one exists (it'''s the in-progress copy), and report
- * "live on the site" from the published copy'''s own field only — a draft'''s
- * unsaved toggle doesn'''t mean anything to visitors until it'''s published.
+ * edit the draft when one exists (it's the in-progress copy), and report
+ * "live on the site" from the published copy's own field only — a draft's
+ * unsaved toggle doesn't mean anything to visitors until it's published.
  */
 function dedupeCourseList(items: CourseListItem[]): CourseListItem[] {
   const byCanonicalId = new Map<string, { draft?: CourseListItem; published?: CourseListItem }>()
