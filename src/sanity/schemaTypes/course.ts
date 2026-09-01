@@ -71,7 +71,44 @@ const textBlock = defineArrayMember({
       name: 'content',
       title: 'Content',
       type: 'array',
-      of: [{ type: 'block' }],
+      // Kept deliberately narrow (no headings/blockquote — those read as
+      // page copy, not lesson prose) rather than Studio's full default
+      // block config. The Course Builder's own rich text editor
+      // (src/sanity/courseBuilder/richTextSchema.ts) targets exactly this
+      // set of decorators/lists/annotations — keep the two in sync, since
+      // both editors write to the same field.
+      of: [
+        defineArrayMember({
+          type: 'block',
+          styles: [{ title: 'Normal', value: 'normal' }],
+          lists: [
+            { title: 'Bulleted list', value: 'bullet' },
+            { title: 'Numbered list', value: 'number' },
+          ],
+          marks: {
+            decorators: [
+              { title: 'Bold', value: 'strong' },
+              { title: 'Italic', value: 'em' },
+              { title: 'Underline', value: 'underline' },
+            ],
+            annotations: [
+              {
+                name: 'link',
+                type: 'object',
+                title: 'Link',
+                fields: [
+                  defineField({
+                    name: 'href',
+                    title: 'URL',
+                    type: 'url',
+                    validation: (Rule) => Rule.required(),
+                  }),
+                ],
+              },
+            ],
+          },
+        }),
+      ],
     }),
   ],
   preview: {

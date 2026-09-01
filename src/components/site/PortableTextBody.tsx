@@ -39,6 +39,25 @@ const components: PortableTextComponents = {
     bullet: ({ children }) => <ul className="body-list">{children}</ul>,
     number: ({ children }) => <ol className="body-list">{children}</ol>,
   },
+  marks: {
+    // @portabletext/react's built-in defaults already handle strong/em/
+    // underline — only the custom `link` annotation (added for the Course
+    // Builder's rich text editor) needs a component here.
+    link: ({ children, value }) => {
+      const href = (value as { href?: string } | undefined)?.href;
+      if (!href) return <>{children}</>;
+      const isExternal = /^https?:\/\//i.test(href);
+      return (
+        <a
+          href={href}
+          style={{ color: "inherit", textDecoration: "underline" }}
+          {...(isExternal ? { target: "_blank", rel: "noopener noreferrer" } : {})}
+        >
+          {children}
+        </a>
+      );
+    },
+  },
 };
 
 export default function PortableTextBody({
